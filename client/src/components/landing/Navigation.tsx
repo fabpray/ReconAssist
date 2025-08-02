@@ -9,7 +9,7 @@ export function Navigation() {
 
   return (
     <nav className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full border-b border-border">
-      <div className="container flex h-16 items-center justify-between px-6 md:px-8">
+      <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-6 md:px-8">
         <Link to="/" className="flex items-center space-x-2">
           <Shield className="h-6 w-6 text-primary" />
           <span className="text-xl font-bold">ReconAI</span>
@@ -58,7 +58,7 @@ export function Navigation() {
       {/* Mobile Menu */}
       {isMenuOpen && (
         <div className="md:hidden border-t border-border bg-background">
-          <div className="container py-4 space-y-4">
+          <div className="max-w-7xl mx-auto px-6 md:px-8 py-4 space-y-4">
             <Link to="#about" className="block text-muted-foreground hover:text-foreground transition-colors">
               About
             </Link>
