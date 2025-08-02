@@ -1,0 +1,62 @@
+1. Current State vs Target:
+Keep and extend the existing Supabase integration and frontend. Do not rip out what exists; augment with backend/services (decision loop, tool executor, chat wiring), new folders (/backend, /shared, etc.), and the full schema. Migrate or layer on—don’t rewrite from scratch.
+
+2. LLM Integration Priority:
+Start with auth/project scaffolding and basic chat flow. Then implement the decision loop: initially with stubbed logic (fixed “basic recon” chain), evolve into the full LLM-as-decision-maker with selective memory and hybrid model use.
+
+3. Tool Implementation Approach:
+Build standardized wrappers/interfaces for all recon tools but start with stubs. Immediately implement subfinder and httpx for real (or semi-real) execution to validate the pattern; progressively add and replace others (waybackurls, gau, paramspider, Arjun, kiterunner, trufflehog, etc.).
+
+4. Demo vs Auth Flow:
+Demo mode is public—no login—showing a seeded fake project with simulated recon findings. Real scoped recon requires signup/login with explicit authorization and scope enforcement.
+
+5. Chat Interface Evolution:
+Keep the landing page. Domain search leads into project creation, then the chat dashboard. Provide smooth transition from demo to real use, with the chat UI accepting natural-language prompts and surfacing suggestions.
+
+6. Free vs Paid Tier (Free Limits):
+Free tier: limited tools (subfinder/Sublist3r, httpx, throttled waybackurls/gau), max 2 header profiles, lightweight model summaries, no exports, lower queue priority, cap (~5 basic recon runs/day). Paid tier: full tools, unlimited headers, advanced reasoning model (e.g., GPT-4.5), exports, priority, collaboration.
+
+7. Database Schema Priority:
+Design the full schema upfront: projects, scopes, project_tools, project_headers, runs, findings, messages (user, llm_decision, tool, override), feedback (thumbs, overrides, corrections), and embeddings. Populate incrementally but keep consistency.
+
+8. Queue System:
+Implement a simple in-process queue for MVP with abstracted enqueue/worker interfaces so upgrading to BullMQ or a distributed orchestrator is trivial later.
+
+9. Embedding System:
+Fallback first to heuristic retrieval (recent decisions, high-severity findings, overrides, scope, original goal) to avoid early embedding cost. Upgrade to real semantic retrieval using OpenAI embeddings (or equivalent) when available.
+
+10. Implementation Order:
+
+    Auth/project creation with plan flags and feedback schema.
+
+    Chat UI wiring with demo project.
+
+    Decision-loop scaffold (stubbed basic recon chain).
+
+    Tool runner + initial tools (subfinder, httpx).
+
+    Full selective-memory LLM integration (including overrides/feedback).
+
+    Natural-language follow-ups, recon score, action cards.
+
+    Free/paid gating, export/report logic.
+
+    Add remaining tools, refine retrieval.
+
+Feedback Handling Clarified:
+
+    Thumbs up/down: lightweight implicit feedback influencing ranking, stored separately.
+
+    Manual overrides: hard constraints (e.g., “don’t scan X”), injected into future prompts.
+
+    Free-form corrections: contextual explanations attached to overrides for richer LLM reasoning.
+
+Key Operational Notes:
+
+    Start with developer LLM key (no keys yet—use mocks/stubs initially), allow optional user-supplied keys per project with fallback logic.
+
+    Export generation (paid) backend-side (Markdown → PDF).
+
+    Both frontend and backend live on Replit initially; design for eventual offload.
+
+    Store thumbs and overrides distinctly; support revocation.

@@ -8,13 +8,13 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 96%;
+    --background: 0 0% 92%;
     --foreground: 0 0% 15%;
 
-    --card: 0 0% 100%;
+    --card: 0 0% 95%;
     --card-foreground: 0 0% 15%;
 
-    --popover: 0 0% 100%;
+    --popover: 0 0% 95%;
     --popover-foreground: 0 0% 15%;
 
     /* Light theme with blue accents */
@@ -22,13 +22,13 @@ All colors MUST be HSL.
     --primary-foreground: 0 0% 100%;
     --primary-glow: 210 100% 60%;
 
-    --secondary: 0 0% 92%;
+    --secondary: 0 0% 88%;
     --secondary-foreground: 0 0% 15%;
 
-    --muted: 0 0% 94%;
+    --muted: 0 0% 90%;
     --muted-foreground: 0 0% 45%;
 
-    --accent: 0 0% 92%;
+    --accent: 0 0% 88%;
     --accent-foreground: 0 0% 15%;
 
     /* Security themed success/warning/danger */
@@ -39,8 +39,8 @@ All colors MUST be HSL.
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 0 0% 89%;
-    --input: 0 0% 100%;
+    --border: 0 0% 85%;
+    --input: 0 0% 95%;
     --ring: 210 100% 50%;
 
     --radius: 0.5rem;
