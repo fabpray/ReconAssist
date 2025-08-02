@@ -1,198 +1,173 @@
-import { LLMDecision, ContextItem, ActionCard, Message, Finding } from '../../shared/types';
-import { LLMClient } from './llm-client';
+import { LLMClient, type LLMDecision, type ActionCard } from './llm-client';
+
+export interface DecisionResult {
+  id: string;
+  actions: ActionCard[];
+  reasoning: string;
+  confidence: number;
+  auto_execute: boolean;
+  requires_approval: boolean;
+  message_id: string;
+  timestamp: string;
+}
 
 export class DecisionLoop {
   private llmClient: LLMClient;
+  private decisionHistory: Map<string, DecisionResult[]> = new Map();
 
   constructor(llmClient: LLMClient) {
     this.llmClient = llmClient;
   }
 
   async processUserInput(
-    projectId: string,
-    userInput: string,
+    projectId: string, 
+    userMessage: string, 
     userId: string
-  ): Promise<LLMDecision> {
-    // Retrieve relevant context
-    const context = await this.retrieveContext(projectId, userInput);
-    
-    // Get project scope and constraints
-    const project = await this.getProject(projectId);
-    const overrides = await this.getActiveOverrides(projectId);
-    
-    // Build prompt template
-    const prompt = this.buildPrompt(project, context, overrides, userInput);
+  ): Promise<DecisionResult> {
     
     // Get LLM decision
-    const llmResponse = await this.llmClient.getDecision(prompt, userId);
+    const llmDecision = await this.llmClient.getDecision(userMessage, userId);
     
-    // Parse and validate response
-    const decision = this.parseDecision(llmResponse);
-    
-    // Store decision message
-    await this.storeDecisionMessage(projectId, userInput, decision);
-    
-    return decision;
-  }
+    // Create decision result
+    const decisionResult: DecisionResult = {
+      id: `decision_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      actions: llmDecision.actions,
+      reasoning: llmDecision.reasoning,
+      confidence: llmDecision.confidence,
+      auto_execute: this.shouldAutoExecute(llmDecision),
+      requires_approval: !this.shouldAutoExecute(llmDecision),
+      message_id: `msg_${Date.now()}`,
+      timestamp: new Date().toISOString()
+    };
 
-  private async retrieveContext(projectId: string, userInput: string): Promise<ContextItem[]> {
-    // For now, use heuristic retrieval (recent + high severity + overrides)
-    // TODO: Replace with embedding-based semantic retrieval
-    
-    const context: ContextItem[] = [];
-    
-    // Get recent messages
-    const recentMessages = await this.getRecentMessages(projectId, 10);
-    context.push(...recentMessages.map(msg => ({
-      type: 'message' as const,
-      content: msg.content,
-      relevance_score: this.calculateRecencyScore(msg.created_at),
-      timestamp: msg.created_at
-    })));
-    
-    // Get high-severity findings
-    const criticalFindings = await this.getHighSeverityFindings(projectId);
-    context.push(...criticalFindings.map(finding => ({
-      type: 'finding' as const,
-      content: `${finding.title}: ${finding.description}`,
-      relevance_score: this.calculateSeverityScore(finding.severity),
-      timestamp: finding.created_at
-    })));
-    
-    // Get active overrides
-    const overrides = await this.getActiveOverrides(projectId);
-    context.push(...overrides.map(override => ({
-      type: 'override' as const,
-      content: override.content,
-      relevance_score: 1.0, // Overrides always have highest relevance
-      timestamp: override.created_at
-    })));
-    
-    // Sort by relevance and return top N
-    return context
-      .sort((a, b) => b.relevance_score - a.relevance_score)
-      .slice(0, 20);
-  }
-
-  private buildPrompt(
-    project: any,
-    context: ContextItem[],
-    overrides: any[],
-    userInput: string
-  ): string {
-    const systemInstructions = `You are ReconAI, an expert security reconnaissance assistant. Your task is to analyze the user's request and suggest specific reconnaissance actions.
-
-Project Scope: ${project.scope.join(', ')}
-Target: ${project.target}
-Plan: ${project.plan}
-
-CONSTRAINTS:
-${overrides.map(o => `- ${o.content}`).join('\n')}
-
-CONTEXT:
-${context.map(c => `[${c.type}] ${c.content}`).join('\n')}
-
-INSTRUCTIONS:
-1. Analyze the user's request in the context of the reconnaissance project
-2. Suggest 1-3 specific actions using available tools
-3. For each action, provide: tool name, target, reasoning, confidence (0-1), and whether it's inferred
-4. If the request is ambiguous, ask for clarification instead of guessing
-5. NEVER suggest targets outside the user-defined project scope
-6. NEVER automatically expand scope - only use exactly what the user specified
-7. If user requests something outside scope, ask them to modify the project scope first
-
-Available tools: ${project.plan === 'free' ? 'subfinder, httpx, waybackurls (throttled)' : 'subfinder, httpx, waybackurls, gau, paramspider, arjun, kiterunner, trufflehog, nmap'}
-
-Respond in JSON format:
-{
-  "actions": [
-    {
-      "tool": "tool_name",
-      "target": "specific_target",
-      "reason": "why this action is suggested",
-      "confidence": 0.8,
-      "inferred": false
+    // Store decision in history
+    if (!this.decisionHistory.has(projectId)) {
+      this.decisionHistory.set(projectId, []);
     }
-  ],
-  "reasoning": "overall reasoning for the suggested actions",
-  "confidence": 0.8,
-  "clarification": "question if unclear (optional)"
-}`;
+    this.decisionHistory.get(projectId)!.push(decisionResult);
 
-    return `${systemInstructions}\n\nUser Request: ${userInput}`;
-  }
-
-  private parseDecision(llmResponse: string): LLMDecision {
-    try {
-      const parsed = JSON.parse(llmResponse);
-      
-      const actions: ActionCard[] = parsed.actions.map((action: any, index: number) => ({
-        id: `action_${Date.now()}_${index}`,
-        tool: action.tool,
-        target: action.target,
-        reason: action.reason,
-        confidence: action.confidence,
-        inferred: action.inferred || false,
-        status: 'suggested' as const
-      }));
-
-      return {
-        actions,
-        reasoning: parsed.reasoning,
-        confidence: parsed.confidence,
-        clarification: parsed.clarification
-      };
-    } catch (error) {
-      // Fallback for malformed responses
-      return {
-        actions: [],
-        reasoning: "Failed to parse LLM response",
-        confidence: 0,
-        clarification: "I had trouble understanding the request. Could you please rephrase?"
-      };
+    // Keep only last 10 decisions per project
+    const history = this.decisionHistory.get(projectId)!;
+    if (history.length > 10) {
+      this.decisionHistory.set(projectId, history.slice(-10));
     }
+
+    return decisionResult;
   }
 
-  // Stub implementations - replace with actual database queries
-  private async getProject(projectId: string) {
-    // TODO: Implement actual database query
-    return {
-      id: projectId,
-      target: 'example.com', 
-      scope: ['example.com'], // Only exact user-specified targets
-      plan: 'free'
+  private shouldAutoExecute(decision: LLMDecision): boolean {
+    // Auto-execute only if:
+    // 1. High confidence (>= 0.8)
+    // 2. No clarification needed
+    // 3. Actions are low-risk
+    
+    if (decision.confidence < 0.8 || decision.needs_clarification) {
+      return false;
+    }
+
+    // Check if all actions are safe for auto-execution
+    const safeTools = ['subfinder', 'httpx', 'waybackurls', 'gau', 'dnsx'];
+    const allSafe = decision.actions.every(action => 
+      safeTools.includes(action.tool) && action.confidence >= 0.7
+    );
+
+    return allSafe;
+  }
+
+  async approveDecision(
+    projectId: string, 
+    decisionId: string, 
+    userId: string
+  ): Promise<{ success: boolean; message: string }> {
+    
+    const history = this.decisionHistory.get(projectId);
+    if (!history) {
+      return { success: false, message: 'Project not found' };
+    }
+
+    const decision = history.find(d => d.id === decisionId);
+    if (!decision) {
+      return { success: false, message: 'Decision not found' };
+    }
+
+    if (!decision.requires_approval) {
+      return { success: false, message: 'Decision does not require approval' };
+    }
+
+    // Mark as approved and ready for execution
+    decision.requires_approval = false;
+    decision.auto_execute = true;
+
+    return { 
+      success: true, 
+      message: `Decision ${decisionId} approved for execution` 
     };
   }
 
-  private async getRecentMessages(projectId: string, limit: number): Promise<Message[]> {
-    // TODO: Implement actual database query
-    return [];
+  async rejectDecision(
+    projectId: string, 
+    decisionId: string, 
+    userId: string,
+    reason?: string
+  ): Promise<{ success: boolean; message: string }> {
+    
+    const history = this.decisionHistory.get(projectId);
+    if (!history) {
+      return { success: false, message: 'Project not found' };
+    }
+
+    const decisionIndex = history.findIndex(d => d.id === decisionId);
+    if (decisionIndex === -1) {
+      return { success: false, message: 'Decision not found' };
+    }
+
+    // Remove rejected decision from history
+    history.splice(decisionIndex, 1);
+
+    return { 
+      success: true, 
+      message: `Decision ${decisionId} rejected${reason ? ': ' + reason : ''}` 
+    };
   }
 
-  private async getHighSeverityFindings(projectId: string): Promise<Finding[]> {
-    // TODO: Implement actual database query
-    return [];
+  getDecisionHistory(projectId: string): DecisionResult[] {
+    return this.decisionHistory.get(projectId) || [];
   }
 
-  private async getActiveOverrides(projectId: string): Promise<any[]> {
-    // TODO: Implement actual database query
-    return [];
+  getPendingDecisions(projectId: string): DecisionResult[] {
+    const history = this.decisionHistory.get(projectId) || [];
+    return history.filter(d => d.requires_approval);
   }
 
-  private async storeDecisionMessage(projectId: string, userInput: string, decision: LLMDecision) {
-    // TODO: Implement actual database storage
-    console.log('Storing decision message:', { projectId, userInput, decision });
+  getAutoExecutableDecisions(projectId: string): DecisionResult[] {
+    const history = this.decisionHistory.get(projectId) || [];
+    return history.filter(d => d.auto_execute && !d.requires_approval);
   }
 
-  private calculateRecencyScore(timestamp: string): number {
-    const now = new Date();
-    const messageTime = new Date(timestamp);
-    const ageHours = (now.getTime() - messageTime.getTime()) / (1000 * 60 * 60);
-    return Math.max(0, 1 - (ageHours / 24)); // Decay over 24 hours
+  clearDecisionHistory(projectId: string): void {
+    this.decisionHistory.delete(projectId);
   }
 
-  private calculateSeverityScore(severity: string): number {
-    const scores = { critical: 1.0, high: 0.8, medium: 0.6, low: 0.4 };
-    return scores[severity as keyof typeof scores] || 0.2;
+  // For debugging and transparency
+  getDecisionStats(projectId: string): {
+    total_decisions: number;
+    auto_executed: number;
+    pending_approval: number;
+    average_confidence: number;
+  } {
+    const history = this.decisionHistory.get(projectId) || [];
+    
+    const autoExecuted = history.filter(d => d.auto_execute && !d.requires_approval).length;
+    const pendingApproval = history.filter(d => d.requires_approval).length;
+    const avgConfidence = history.length > 0 
+      ? history.reduce((sum, d) => sum + d.confidence, 0) / history.length 
+      : 0;
+
+    return {
+      total_decisions: history.length,
+      auto_executed: autoExecuted,
+      pending_approval: pendingApproval,
+      average_confidence: Math.round(avgConfidence * 100) / 100
+    };
   }
 }

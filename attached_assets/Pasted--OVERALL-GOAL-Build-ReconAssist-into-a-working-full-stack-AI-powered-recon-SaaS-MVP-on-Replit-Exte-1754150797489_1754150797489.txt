@@ -1,0 +1,61 @@
+[OVERALL GOAL]
+Build ReconAssist into a working full-stack AI-powered recon SaaS MVP on Replit. Extend the existing frontend and Supabase foundation by implementing: the backend decision-making loop with memory, tool orchestration (installed + mocked), scoped projects, feedback/override handling, BYOK key management with extra encryption, free/paid tier enforcement, intelligent auto tool selection, sidebar controls (scope, headers, tools), caching/throttling/fallback simulation, and clear UI representation of all outputs and costs.
+
+[1. Backend & Schema]
+- Scaffold a Node.js (TypeScript) backend. Connect to Supabase for Auth, storage, and persistence.  
+- Define and create schema: projects (target_domain, scope, plan), project_tools, project_headers, runs, findings, messages (user, llm_decision, tool_output, override, system), feedback (thumb, override, correction with free-form text), and embeddings placeholder.  
+- Enforce free vs paid logic at project creation (tool access, header limits, session caps, export gating, priority).  
+- Securely store developer and user-supplied API/LLM keys with fallback logic (user key → developer key) and client-side encryption such that raw keys are only decrypted in memory at execution time.
+
+[2. Decision Loop & Memory]
+- Persist all interactions: user prompts, LLM plans, tool outputs (raw + summary), overrides, feedback, and scope changes.  
+- Implement heuristic context retrieval fallback (last 1–2 decisions, active overrides, top recent high-severity findings, current scope/original goal, latest instruction).  
+- Upgrade path to embedding-based semantic relevance when available (composite score of similarity + severity + recency + override weight).  
+- Build prompt templates combining constraints (scope + overrides), retrieved context, original goal, and natural language user input.  
+- Request from the LLM up to 2 next actions in strict JSON: [{tool, target, reason, confidence, inferred}]; if ambiguous, ask a clarifying question instead.  
+- Store the output as an llm_decision message and parse into executable actions.
+
+[3. Tool Integration]
+- **Install now on Replit:** subfinder, httpx, waybackurls, gau, Arjun, trufflehog, dnsx.  
+- **Mock initially:** nmap, masscan, amass (active), kiterunner, dirsearch, ffuf, heavy cloud bucket scanners. Provide realistic stub outputs.  
+- Group tools: free/no-key (including installed and others with mock fallback) and paid/API-key-throttled (SecurityTrails, Shodan, Censys, BuiltWith, Chaos-client, VirusTotal, grayhatwarfare). Treat waybackurls/gau/crt.sh as free but rate-limited.  
+- Build modular wrappers that enforce scope, apply selected header profiles, normalize output, and annotate origin (real, cached, simulated) plus metadata (key used, cache hit, simulation reason).
+
+[4. Key Management & BYOK]
+- Allow both free and paid users to supply their own API keys (BYOK) for paid services; fallback to developer key if none.  
+- Validate keys on attachment.  
+- Store keys encrypted: client-side encryption before transport, decrypt only at runtime.  
+- Reflect key status in UI.
+
+[5. Free vs Paid Enforcement]
+- Free tier: basic tools only, max 2 header profiles, limited sessions, lightweight LLM summaries, no exports unless upgraded, lower queue priority, paid APIs only if user supplies key.  
+- Paid tier: full access, advanced LLM reasoning, exportable reports, priority execution, and developer-key-backed enrichment.
+
+[6. Caching / Throttling / Fallback]
+- Centralize caching for API results and tool outputs.  
+- On rate limit or failure: use cache if fresh; else retry with backoff; if still unavailable, have the LLM simulate/infer results and flag them clearly as “Simulated” with reasons and confidence.
+
+[7. Sidebar & UX]
+- Sidebar must enable scope management (add/remove domains/subdomains/IPs with in/out-of-scope tags), tool selection (auto-selected by LLM but overrideable), header profile management, plan/key management, and recon configuration (depth, priority).  
+- Show all tools; paid ones are visible but disabled for free users with upgrade hints.  
+- Display action cards in the chat with tool, target, reason, confidence, inferred flag, real vs simulated indicator, and controls to accept/reject/override.
+
+[8. Auto Selection & Overrides]
+- LLM should auto-select tools based on plan, scope, and available keys; users can override.  
+- Overrides become hard constraints in future prompts and are stored with optional explanations.
+
+[9. Feedback]
+- Capture implicit feedback (thumbs up/down) to influence future priorities.  
+- Capture explicit overrides with free-form corrections.  
+- Show and allow revocation of past feedback in UI.
+
+[10. Transparency & Metrics]
+- Show per-project usage: API calls, simulated fallback count, LLM token usage, tool execution history, and Recon Score (coverage + severity).  
+- Log and surface which context influenced LLM decisions, which keys were used, and whether outputs were real/cached/simulated.
+
+[11. Deliverables]
+- Working MVP where a user can sign up, create scoped project, issue natural-language recon prompts, see LLM-planned next actions, have stubbed/light tools run, get summaries/classifications, and provide follow-ups.  
+- Demo mode for unauthenticated visitors.  
+- Full free/paid gating, secure key handling, and clear documentation (README, env setup, seeding scripts).  
+- Comments marking where to swap mocks for real implementations, enable embedding upgrades, and extend with additional tools or offload heavy execution later.
+

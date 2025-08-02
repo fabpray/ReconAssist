@@ -12,6 +12,7 @@ import NotFound from "./pages/NotFound";
 import { ProjectPage } from "./pages/ProjectPage";
 import { CreateProjectPage } from "./pages/CreateProjectPage";
 import { OnboardingPage } from "./pages/OnboardingPage";
+import { TestPage } from "./pages/TestPage";
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/onboarding" component={OnboardingPage} />
           <Route path="/create-project" component={CreateProjectPage} />
           <Route path="/project/:id" component={ProjectPage} />
+          <Route path="/test" component={TestPage} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route component={NotFound} />
         </Switch>
