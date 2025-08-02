@@ -62,24 +62,7 @@ export function HeroSection() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Navigation */}
-      <nav className="relative z-10 flex justify-between items-center p-6 max-w-7xl mx-auto">
-        <div className="flex items-center space-x-2">
-          <Shield className="h-8 w-8 text-primary" />
-          <span className="text-xl font-bold">ReconAI</span>
-        </div>
-        <div className="hidden md:flex items-center space-x-8">
-          <a href="#about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">About</a>
-          <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Features</a>
-          <a href="#pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Pricing</a>
-          <a href="#docs" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Docs</a>
-          <a href="#contact" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Contact</a>
-          <Button size="sm" className="rounded-full">Sign In</Button>
-        </div>
-      </nav>
-
-      <section className="min-h-[calc(100vh-80px)] relative overflow-hidden">
+    <section className="min-h-screen relative overflow-hidden">
         {/* Background gradients */}
         <div className="absolute inset-0 bg-gradient-mesh"></div>
         
@@ -98,7 +81,7 @@ export function HeroSection() {
           </svg>
         </div>
 
-        <div className="relative z-10 flex items-center justify-center min-h-[calc(100vh-160px)] px-6">
+      <div className="relative z-10 flex items-center justify-center min-h-screen px-6">
         <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
           
           {/* Left content */}
@@ -163,9 +146,8 @@ export function HeroSection() {
               </div>
             </div>
           </div>
-          </div>
         </div>
-      </section>
-    </div>
+      </div>
+    </section>
   );
 }

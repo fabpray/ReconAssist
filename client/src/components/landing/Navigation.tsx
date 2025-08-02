@@ -12,19 +12,25 @@ export function Navigation() {
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center space-x-2">
           <Shield className="h-6 w-6 text-primary" />
-          <span className="text-xl font-bold">ReconAssistant</span>
+          <span className="text-xl font-bold">ReconAI</span>
         </Link>
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-6">
+          <Link to="#about" className="text-muted-foreground hover:text-foreground transition-colors">
+            About
+          </Link>
           <Link to="#features" className="text-muted-foreground hover:text-foreground transition-colors">
             Features
           </Link>
           <Link to="#pricing" className="text-muted-foreground hover:text-foreground transition-colors">
             Pricing
           </Link>
-          <Link to="#demo" className="text-muted-foreground hover:text-foreground transition-colors">
-            Demo
+          <Link to="#docs" className="text-muted-foreground hover:text-foreground transition-colors">
+            Docs
+          </Link>
+          <Link to="#contact" className="text-muted-foreground hover:text-foreground transition-colors">
+            Contact
           </Link>
           <ThemeToggle />
           <Button asChild variant="outline">
@@ -53,14 +59,20 @@ export function Navigation() {
       {isMenuOpen && (
         <div className="md:hidden border-t border-border bg-background">
           <div className="container py-4 space-y-4">
+            <Link to="#about" className="block text-muted-foreground hover:text-foreground transition-colors">
+              About
+            </Link>
             <Link to="#features" className="block text-muted-foreground hover:text-foreground transition-colors">
               Features
             </Link>
             <Link to="#pricing" className="block text-muted-foreground hover:text-foreground transition-colors">
               Pricing
             </Link>
-            <Link to="#demo" className="block text-muted-foreground hover:text-foreground transition-colors">
-              Demo
+            <Link to="#docs" className="block text-muted-foreground hover:text-foreground transition-colors">
+              Docs
+            </Link>
+            <Link to="#contact" className="block text-muted-foreground hover:text-foreground transition-colors">
+              Contact
             </Link>
             <div className="space-y-2 pt-4">
               <Button asChild variant="outline" className="w-full">
