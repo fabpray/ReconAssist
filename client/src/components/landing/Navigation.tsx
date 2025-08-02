@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Shield, Menu } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "wouter";
 
 export function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

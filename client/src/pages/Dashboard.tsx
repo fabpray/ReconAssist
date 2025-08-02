@@ -11,7 +11,7 @@ import {
   FolderOpen,
   TrendingUp
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "wouter";
 
 export default function Dashboard() {
   // Mock data for demonstration
