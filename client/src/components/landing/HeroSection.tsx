@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Shield, Zap, Target } from "lucide-react";
+import { Search, Shield, Zap, Target, Globe, Lock, Activity } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
 
@@ -62,66 +62,104 @@ export function HeroSection() {
   };
 
   return (
-    <section className="min-h-screen flex items-center justify-center px-4 py-8">
-      <div className="max-w-4xl mx-auto text-center">
-        <div className="mb-8">
-          <h1 className="text-5xl md:text-7xl font-bold mb-4 tracking-tight">
-            ReconAI
-          </h1>
-          <p className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-2xl mx-auto font-light">
-            AI-powered security reconnaissance that transforms hours of manual work into minutes of intelligent discovery
-          </p>
-        </div>
+    <section className="min-h-screen relative overflow-hidden">
+      {/* Background gradients */}
+      <div className="absolute inset-0 bg-gradient-mesh"></div>
+      
+      {/* Flowing lines background */}
+      <div className="absolute inset-0 opacity-40">
+        <svg className="absolute top-1/4 right-0 w-2/3 h-2/3" viewBox="0 0 800 600" fill="none">
+          <path d="M400 100 Q600 200 400 300 Q200 400 400 500" stroke="url(#gradient1)" strokeWidth="2" fill="none" opacity="0.6"/>
+          <path d="M450 120 Q650 220 450 320 Q250 420 450 520" stroke="url(#gradient1)" strokeWidth="1.5" fill="none" opacity="0.4"/>
+          <path d="M350 80 Q550 180 350 280 Q150 380 350 480" stroke="url(#gradient1)" strokeWidth="1" fill="none" opacity="0.3"/>
+          <defs>
+            <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="hsl(263, 70%, 50%)" />
+              <stop offset="100%" stopColor="hsl(267, 83%, 58%)" />
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
 
-        {/* Main Search Input */}
-        <div className="max-w-3xl mx-auto mb-12">
+      {/* Navigation */}
+      <nav className="relative z-10 flex justify-between items-center p-6 max-w-7xl mx-auto">
+        <div className="flex items-center space-x-2">
+          <Shield className="h-8 w-8 text-primary" />
+          <span className="text-xl font-bold">ReconAI</span>
+        </div>
+        <div className="hidden md:flex items-center space-x-8">
+          <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Features</a>
+          <a href="#pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Pricing</a>
+          <a href="#docs" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Docs</a>
+          <Button size="sm" className="rounded-full">Sign In</Button>
+        </div>
+      </nav>
+
+      <div className="relative z-10 flex items-center justify-center min-h-[calc(100vh-100px)] px-6">
+        <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
+          
+          {/* Left content */}
+          <div className="space-y-8">
+            <div>
+              <h1 className="text-6xl md:text-7xl font-bold mb-6 tracking-tight">
+                Welcome.
+              </h1>
+              <p className="text-xl text-muted-foreground mb-8 max-w-lg leading-relaxed">
+                AI-powered security reconnaissance that transforms hours of manual work into minutes of intelligent discovery
+              </p>
+            </div>
+
+            {/* Main Search Input */}
+            <div className="space-y-4">
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                  placeholder={`Ask ReconAI to ${displayText}${showCursor ? '|' : ' '}`}
+                  value={domain}
+                  onChange={(e) => setDomain(e.target.value)}
+                  className="w-full h-14 pl-12 pr-4 text-base rounded-full border-2 border-border focus:border-ring focus:ring-0 bg-card/50 backdrop-blur-sm"
+                  onKeyPress={(e) => e.key === 'Enter' && handleDemoSearch()}
+                />
+              </div>
+              <div className="flex gap-3">
+                <Button onClick={handleDemoSearch} className="rounded-full px-6">
+                  Free Trial
+                </Button>
+                <Button variant="outline" className="rounded-full px-6">
+                  see more
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Right content */}
           <div className="relative">
-            <Input
-              placeholder={`Ask ReconAI to ${displayText}${showCursor ? '|' : ' '}`}
-              value={domain}
-              onChange={(e) => setDomain(e.target.value)}
-              className="w-full h-14 px-6 text-lg rounded-xl border-2 border-border focus:border-ring focus:ring-0 bg-background shadow-sm"
-              onKeyPress={(e) => e.key === 'Enter' && handleDemoSearch()}
-            />
-            <Button 
-              onClick={handleDemoSearch} 
-              className="absolute right-2 top-2 h-10 px-6 rounded-lg bg-primary hover:bg-primary/90"
-            >
-              Submit
-            </Button>
+            <div className="bg-card/30 backdrop-blur-sm rounded-2xl p-8 border border-border/50">
+              <div className="flex items-center space-x-3 mb-6">
+                <Globe className="h-6 w-6 text-primary" />
+                <span className="text-lg font-semibold">Security Dashboard.</span>
+              </div>
+              <p className="text-muted-foreground mb-8 leading-relaxed">
+                Advanced reconnaissance capabilities powered by AI. Discover vulnerabilities, map attack surfaces, and generate comprehensive security reports with natural language commands.
+              </p>
+              
+              {/* Feature icons */}
+              <div className="grid grid-cols-3 gap-4">
+                <div className="text-center p-4 rounded-lg bg-background/50">
+                  <Target className="h-8 w-8 text-primary mx-auto mb-2" />
+                  <p className="text-xs text-muted-foreground">Smart Targeting</p>
+                </div>
+                <div className="text-center p-4 rounded-lg bg-background/50">
+                  <Activity className="h-8 w-8 text-primary mx-auto mb-2" />
+                  <p className="text-xs text-muted-foreground">Live Monitoring</p>
+                </div>
+                <div className="text-center p-4 rounded-lg bg-background/50">
+                  <Lock className="h-8 w-8 text-primary mx-auto mb-2" />
+                  <p className="text-xs text-muted-foreground">Secure Reports</p>
+                </div>
+              </div>
+            </div>
           </div>
-          <p className="text-sm text-muted-foreground mt-3 font-light">
-            Free to try • No signup required
-          </p>
-        </div>
-
-        {/* Simple Feature List */}
-        <div className="grid md:grid-cols-3 gap-8 text-center max-w-4xl mx-auto">
-          <div className="space-y-2">
-            <h3 className="font-semibold text-lg">Smart Scoping</h3>
-            <p className="text-muted-foreground text-sm">
-              Define targets with natural language
-            </p>
-          </div>
-          <div className="space-y-2">
-            <h3 className="font-semibold text-lg">Auto Discovery</h3>
-            <p className="text-muted-foreground text-sm">
-              20+ tools orchestrated by AI
-            </p>
-          </div>
-          <div className="space-y-2">
-            <h3 className="font-semibold text-lg">Intelligent Analysis</h3>
-            <p className="text-muted-foreground text-sm">
-              AI-powered insights and reporting
-            </p>
-          </div>
-        </div>
-
-        {/* CTA */}
-        <div className="mt-16">
-          <Button asChild size="lg" variant="outline" className="rounded-xl px-8">
-            <Link to="/auth">Get Started</Link>
-          </Button>
         </div>
       </div>
     </section>
