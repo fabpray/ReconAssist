@@ -74,8 +74,8 @@ export function HeroSection() {
             <path d="M350 80 Q550 180 350 280 Q150 380 350 480" stroke="url(#gradient1)" strokeWidth="1" fill="none" opacity="0.3"/>
             <defs>
               <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="hsl(263, 70%, 50%)" />
-                <stop offset="100%" stopColor="hsl(267, 83%, 58%)" />
+                <stop offset="0%" stopColor="hsl(210, 100%, 50%)" />
+                <stop offset="100%" stopColor="hsl(210, 100%, 60%)" />
               </linearGradient>
             </defs>
           </svg>
