@@ -8,7 +8,7 @@ export function HeroSection() {
   const [domain, setDomain] = useState("");
   const [currentPrompt, setCurrentPrompt] = useState(0);
   const [displayText, setDisplayText] = useState("");
-  const [isTyping, setIsTyping] = useState(true);
+  const [showCursor, setShowCursor] = useState(true);
 
   const prompts = [
     "run a basic recon on my scoped target",
@@ -45,6 +45,15 @@ export function HeroSection() {
     return () => clearTimeout(timeout);
   }, [currentPrompt]);
 
+  // Cursor blinking effect
+  useEffect(() => {
+    const cursorInterval = setInterval(() => {
+      setShowCursor(prev => !prev);
+    }, 500);
+
+    return () => clearInterval(cursorInterval);
+  }, []);
+
   const handleDemoSearch = () => {
     if (domain) {
       // For now, just redirect to auth. Later we'll add demo mode
@@ -73,7 +82,7 @@ export function HeroSection() {
               <div className="flex-1 flex items-center space-x-2">
                 <Search className="h-5 w-5 text-muted-foreground ml-3" />
                 <Input
-                  placeholder={`Ask ReconAI to ${displayText}`}
+                  placeholder={`Ask ReconAI to ${displayText}${showCursor ? '|' : ' '}`}
                   value={domain}
                   onChange={(e) => setDomain(e.target.value)}
                   className="border-0 focus-visible:ring-0 bg-transparent"
