@@ -131,3 +131,37 @@ export interface ContextItem {
   relevance_score: number;
   timestamp: string;
 }
+
+// Threat Intelligence types
+export interface ThreatPrediction {
+  id: string;
+  project_id: string;
+  threat_type: string;
+  risk_score: number;
+  confidence: number;
+  predicted_attack_vectors: string[];
+  recommended_actions: string[];
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  likelihood: number;
+  impact: number;
+  created_at: string;
+}
+
+export interface RiskAssessment {
+  overall_risk_score: number;
+  risk_level: 'low' | 'medium' | 'high' | 'critical';
+  primary_threats: ThreatPrediction[];
+  vulnerability_trends: {
+    increasing: string[];
+    decreasing: string[];
+    stable: string[];
+  };
+  attack_surface_analysis: {
+    exposed_services: number;
+    critical_endpoints: number;
+    weak_configurations: number;
+    data_exposure_risk: number;
+  };
+  time_to_compromise_estimate: string;
+  recommendations: string[];
+}

@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { ChatInterface } from '../chat/ChatInterface';
+import { ThreatIntelligencePanel } from '../threat/ThreatIntelligencePanel';
 import { ReconScore, Finding, Project } from '../../../shared/types.js';
 import { Link } from 'wouter';
 
@@ -197,6 +198,7 @@ export function ProjectDashboard({ projectId }: ProjectDashboardProps) {
           <Tabs defaultValue="chat" className="flex-1 flex flex-col">
             <TabsList className="mx-4 mt-4 w-fit">
               <TabsTrigger value="chat">Chat</TabsTrigger>
+              <TabsTrigger value="threats">Threat Intelligence</TabsTrigger>
               <TabsTrigger value="findings">Findings</TabsTrigger>
               <TabsTrigger value="activity">Activity</TabsTrigger>
             </TabsList>
@@ -209,6 +211,10 @@ export function ProjectDashboard({ projectId }: ProjectDashboardProps) {
                   target={project.target}
                 />
               </Card>
+            </TabsContent>
+            
+            <TabsContent value="threats" className="flex-1 m-4 mt-2 overflow-y-auto">
+              <ThreatIntelligencePanel projectId={project.id} />
             </TabsContent>
             
             <TabsContent value="findings" className="flex-1 m-4 mt-2">
