@@ -1,0 +1,74 @@
+You are building a full-stack MVP for an AI-powered recon SaaS application with a desktop wrapper (Electron-ready) and a modern chat-driven interface. Create the entire project scaffold with folders, sample code, and wiring—do not work file-by-file; generate the core structure and working minimal implementation. Follow these requirements exactly:
+
+1. **Tech Stack & Integrations**
+   - Frontend: React + Tailwind CSS (TypeScript) with the chat UI using the provided dark theme.  
+   - Backend: Node.js (TypeScript) service.  
+   - Persistence & Auth: Supabase (use its Auth, PostgreSQL, and storage).  
+   - LLM: Integrate with OpenAI-style API (support developer API key and optional user-supplied key).  
+   - Decision Loop: Implement LLM-as-decision-maker with selective memory retrieval (embedding + heuristic boosting).  
+   - Recon Tools: Provide containerized stubs/wrappers (can be mocked initially) for subfinder, httpx, waybackurls, gau, paramspider, Arjun, kiterunner, trufflehog, nmap.  
+   - Task Orchestration: Use a queue pattern (e.g., simple in-process queue to start, extendable to BullMQ) to schedule tool runs based on LLM decisions.  
+
+2. **Folder Structure**
+   Create a coherent structure along these lines:
+   /frontend
+     /src
+       /components (ChatInterface, ActionCards, ProjectDashboard, AuthForms)
+       /hooks
+       /lib (Supabase client, LLM client)
+       /pages or App.tsx entry
+   /backend
+     /services
+       decision-loop.ts (implements context retrieval, prompt templating, parsing LLM JSON plans)
+       tool-runner.ts (stub wrappers for recon tools, applying custom headers & scope)
+       llm-client.ts (handles prompt construction, model selection, developer vs user key logic)
+       project-manager.ts (projects, scopes, free/paid enforcement)
+     /workers (queue logic for executing actions)
+     /db (Supabase schema/migrations or SQL definitions)
+   /shared (types/interfaces used by both front and back)
+   /electron (initial config to wrap frontend later)
+   /scripts (startup, seeding demo project, auth helpers)
+
+3. **Core Features to Implement for MVP**
+   - Authentication: Supabase sign-up/login.  
+   - Project creation: scope definition, tool selection, custom headers, plan (free/paid).  
+   - Chat interface: show messages, simulate AI response initially; hook into real backend soon.  
+   - Decision loop: store messages (user prompts, LLM decisions, tool outputs, overrides) in Supabase, embed/retrieve relevant context, build prompt template, call LLM, parse structured JSON next actions (tool + target + reason + confidence + inferred).  
+   - Override handling: allow user corrections and inject as constraints into subsequent decision prompts.  
+   - Execution binding: take LLM-decided actions, enqueue stubbed tool runs (apply scope and headers), store fake/raw outputs, summarize and classify (simple heuristics to start), persist findings.  
+   - Free vs paid gating: enforce limits (basic toolset and no report exports on free; full access on paid).
+
+4. **Chat UI**
+   - Include the styled dark theme with message bubbles, timestamps, typing indicator, and send input.  
+   - Display LLM suggested next actions as action cards with accept/reject/override controls, showing reasoning, confidence, and whether inferred.  
+   - Show a “Recon Score” and summary panel of top severities.
+
+5. **Prompt Templates (internal logic)**
+   - Decision-making template combining: system instructions (scope + overrides), relevant retrieved context (compressed/high-value), original goal, and the latest user instruction.  
+   - Output instruction: require strict JSON for next actions.  
+   - Clarification flow: if LLM detects ambiguity, return a question instead of actions; UI should surface and await user response.
+
+6. **Selective Memory Retrieval**
+   - Embed stored messages (use any embedding API or mock) and implement a composite relevance scoring (semantic similarity + severity + recency + override weight).  
+   - Retrieve top-N context items, compress older history, and include fixed anchors (scope, original goal).
+
+7. **API & Keys Management**
+   - Support developer-controlled LLM key with usage quotas.  
+   - Optionally accept user-supplied LLM API key per user/project.  
+   - Securely store and encrypt those keys (Supabase or round-trip encryption logic).
+
+8. **Demo Mode**
+   - Seed a demo project with simulated findings and a sample “basic recon” flow so a new user sees output before signup.
+
+9. **Documentation & Scripts**
+   - Provide README with setup steps, environment variables, how to run frontend/backend, how to add a Supabase project, and how to swap in real recon tools.  
+   - Include scripts to seed free vs paid user, example project, and to run a sample follow-up.
+
+10. **Bootstrap Implementation**
+   - Make the “basic recon” flow functional: user types “Run basic recon on this site” in the chat → backend triggers a hardcoded starter chain (subdomain enumeration stub → live host check stub → endpoint collection stub) → LLM summarizes and suggests 2 next actions.  
+   - Provide clear log output showing what context was sent to the LLM (for tuning).  
+
+11. **Extendability**
+   - Code should be modular so real tool containers, advanced queueing (BullMQ), and Electron packaging can be layered on without rewriting core logic.
+
+Deliver a working initial scaffold (with mock data where needed), clear separation of concerns, and minimal but functional implementations of the decision loop, chat UI, and free/paid enforcement. Mention in comments where to replace mocks with real integrations.  
