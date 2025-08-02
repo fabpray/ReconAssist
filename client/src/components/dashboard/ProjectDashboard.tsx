@@ -8,7 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { ChatInterface } from '../chat/ChatInterface';
 import { ThreatIntelligencePanel } from '../threat/ThreatIntelligencePanel';
 import { ScopeManager } from '../project/ScopeManager';
-import { ReconScore, Finding, Project } from '../../../shared/types.js';
+import { ReconScore, Finding, Project } from '@shared/types';
 import { Link } from 'wouter';
 
 interface ProjectDashboardProps {
@@ -221,7 +221,7 @@ export function ProjectDashboard({ projectId }: ProjectDashboardProps) {
                 currentScope={project.scope}
                 onScopeUpdate={(newScope) => {
                   // Update the project state
-                  setProject(prev => prev ? { ...prev, scope: newScope } : null);
+                  setProject((prev: Project | null) => prev ? { ...prev, scope: newScope } : null);
                 }}
               />
             </TabsContent>
