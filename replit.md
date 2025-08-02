@@ -6,7 +6,7 @@ A full-stack reconnaissance and security assessment dashboard built with React, 
 ## Architecture
 - **Frontend**: React 18 with Wouter routing, Radix UI components, Tailwind CSS
 - **Backend**: Express.js server with TypeScript
-- **Database**: PostgreSQL with Drizzle ORM
+- **Database**: Supabase (PostgreSQL) for authentication and data storage
 - **Build**: Vite for frontend, ESBuild for backend
 - **Styling**: Tailwind CSS with shadcn/ui components
 
@@ -29,10 +29,10 @@ A full-stack reconnaissance and security assessment dashboard built with React, 
 ## Recent Changes
 - **2025-01-02**: Migrated from Lovable to Replit environment
   - Replaced React Router with Wouter for routing
-  - Removed Supabase integration, migrated to Replit PostgreSQL
-  - Set up Drizzle ORM with proper database connection
+  - Maintained Supabase integration for database and auth
   - Configured TanStack Query for API state management
-  - Established proper client/server separation
+  - Fixed routing context issues and component imports
+  - Application now running successfully on Replit
 
 ## User Preferences
 - Security-focused application requiring robust practices
@@ -40,12 +40,13 @@ A full-stack reconnaissance and security assessment dashboard built with React, 
 - Clean, professional UI design
 
 ## Database Schema
-- `users` table with id, username, password fields
+- Supabase database ready for reconnaissance project tables
+- Authentication handled by Supabase Auth
 - Ready for expansion with reconnaissance project and findings tables
 
 ## Environment Variables
-- `DATABASE_URL`: PostgreSQL connection string (configured automatically)
-- All other database credentials managed by Replit
+- Supabase credentials configured in client integration files
+- No additional environment setup required
 
 ## Development Commands
 - `npm run dev`: Start development server
