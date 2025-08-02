@@ -108,11 +108,11 @@ export function HeroSection() {
                 />
               </div>
               <div className="flex gap-3">
-                <Button onClick={handleDemoSearch} className="rounded-full px-6">
+                <Button onClick={handleDemoSearch} className="rounded-full px-6" data-testid="button-free-trial">
                   Free Trial
                 </Button>
-                <Button variant="outline" className="rounded-full px-6">
-                  see more
+                <Button variant="outline" className="rounded-full px-6" onClick={() => window.location.href = '/onboarding'}>
+                  Get Started
                 </Button>
               </div>
             </div>

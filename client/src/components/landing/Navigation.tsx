@@ -36,8 +36,8 @@ export function Navigation() {
           <Button asChild variant="outline">
             <Link to="/auth">Sign In</Link>
           </Button>
-          <Button asChild>
-            <Link to="/auth">Start Free Trial</Link>
+          <Button asChild data-testid="button-start-trial">
+            <Link to="/onboarding">Start Free Trial</Link>
           </Button>
         </div>
 
@@ -78,8 +78,8 @@ export function Navigation() {
               <Button asChild variant="outline" className="w-full">
                 <Link to="/auth">Sign In</Link>
               </Button>
-              <Button asChild className="w-full">
-                <Link to="/auth">Start Free Trial</Link>
+              <Button asChild className="w-full" data-testid="button-mobile-start-trial">
+                <Link to="/onboarding">Start Free Trial</Link>
               </Button>
             </div>
           </div>

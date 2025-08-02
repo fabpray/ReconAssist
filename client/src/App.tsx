@@ -11,6 +11,7 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import { ProjectPage } from "./pages/ProjectPage";
 import { CreateProjectPage } from "./pages/CreateProjectPage";
+import { OnboardingPage } from "./pages/OnboardingPage";
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/" component={Index} />
           <Route path="/auth" component={Auth} />
           <Route path="/dashboard" component={Dashboard} />
+          <Route path="/onboarding" component={OnboardingPage} />
           <Route path="/create-project" component={CreateProjectPage} />
           <Route path="/project/:id" component={ProjectPage} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
