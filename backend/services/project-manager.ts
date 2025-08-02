@@ -1,4 +1,4 @@
-import { Project, ProjectTool, ProjectHeader } from '@shared/types';
+import { Project, ProjectTool, ProjectHeader } from '../../shared/types';
 
 export class ProjectManager {
   async createProject(

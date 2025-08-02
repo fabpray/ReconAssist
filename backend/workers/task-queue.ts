@@ -1,4 +1,4 @@
-import { ActionCard, ToolResult } from '@shared/types';
+import { ActionCard, ToolResult } from '../../shared/types';
 import { ToolRunner } from '../services/tool-runner';
 
 interface QueuedTask {

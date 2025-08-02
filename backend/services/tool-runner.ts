@@ -1,4 +1,4 @@
-import { ToolResult, ToolConfig, ActionCard } from '@shared/types';
+import { ToolResult, ToolConfig, ActionCard } from '../../shared/types';
 
 export class ToolRunner {
   private toolConfigs: Map<string, ToolConfig> = new Map();

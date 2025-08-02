@@ -56,8 +56,8 @@ export function HeroSection() {
 
   const handleDemoSearch = () => {
     if (domain) {
-      // For now, just redirect to auth. Later we'll add demo mode
-      window.location.href = "/auth";
+      // Navigate to project creation with the domain prefilled
+      window.location.href = `/create-project?target=${encodeURIComponent(domain)}`;
     }
   };
 

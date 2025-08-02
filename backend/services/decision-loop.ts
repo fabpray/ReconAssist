@@ -1,6 +1,5 @@
-import { LLMDecision, ContextItem, ActionCard, Message, Finding } from '@shared/types';
+import { LLMDecision, ContextItem, ActionCard, Message, Finding } from '../../shared/types';
 import { LLMClient } from './llm-client';
-import { db } from '../db';
 
 export class DecisionLoop {
   private llmClient: LLMClient;
