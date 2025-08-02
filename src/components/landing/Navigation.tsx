@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Shield, Menu } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -25,6 +26,7 @@ export function Navigation() {
           <Link to="#demo" className="text-muted-foreground hover:text-foreground transition-colors">
             Demo
           </Link>
+          <ThemeToggle />
           <Button asChild variant="outline">
             <Link to="/auth">Sign In</Link>
           </Button>
@@ -33,15 +35,18 @@ export function Navigation() {
           </Button>
         </div>
 
-        {/* Mobile Menu Button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="md:hidden"
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-        >
-          <Menu className="h-6 w-6" />
-        </Button>
+        {/* Mobile Menu Button & Theme Toggle */}
+        <div className="md:hidden flex items-center space-x-2">
+          <ThemeToggle />
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            <Menu className="h-6 w-6" />
+          </Button>
+        </div>
       </div>
 
       {/* Mobile Menu */}
