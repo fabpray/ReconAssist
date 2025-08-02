@@ -37,7 +37,7 @@ export class ProjectManager {
       user_id: 'user_123',
       name: 'Demo Project',
       target: 'example.com',
-      scope: ['*.example.com', 'example.com'],
+      scope: ['example.com'], // Only exact user-specified targets
       status: 'active',
       plan: 'free',
       created_at: new Date().toISOString(),

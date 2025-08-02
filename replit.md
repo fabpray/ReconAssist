@@ -56,6 +56,7 @@ A full-stack reconnaissance and security assessment dashboard built with React, 
 - Security-focused application requiring robust practices
 - Modern React patterns with TypeScript
 - Clean, professional UI design
+- **User-controlled scope**: Only the user determines project scope - no automatic expansion or AI suggestions for targets outside user-defined boundaries
 
 ## Database Schema
 - Supabase database ready for reconnaissance project tables

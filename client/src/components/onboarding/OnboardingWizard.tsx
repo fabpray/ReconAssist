@@ -81,7 +81,7 @@ export function OnboardingWizard() {
       const project = await mockCreateProject({
         name: data.projectName,
         target: data.target,
-        scope: [`*.${data.target}`, data.target],
+        scope: [data.target], // Only include exactly what user specified
         plan: data.plan
       });
       
@@ -359,7 +359,7 @@ function ProjectStep({ data, updateData }: { data: OnboardingData; updateData: (
             data-testid="input-target"
           />
           <p className="text-sm text-muted-foreground mt-1">
-            The main domain you want to investigate
+            Enter the exact target domain (only this domain will be in scope)
           </p>
         </div>
       </div>
@@ -367,9 +367,9 @@ function ProjectStep({ data, updateData }: { data: OnboardingData; updateData: (
       <div className="bg-muted p-4 rounded-lg">
         <h4 className="font-medium mb-2">What happens next?</h4>
         <ul className="text-sm text-muted-foreground space-y-1">
-          <li>• We'll automatically configure the project scope</li>
-          <li>• You can start with simple commands like "run basic recon"</li>
-          <li>• Our AI will suggest the best tools for your goals</li>
+          <li>• You'll define the exact scope and parameters</li>
+          <li>• You can start with commands like "run basic recon on [your target]"</li>
+          <li>• Our AI will help execute tools within your defined scope</li>
         </ul>
       </div>
     </div>

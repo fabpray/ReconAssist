@@ -11,9 +11,9 @@ export function HeroSection() {
   const [showCursor, setShowCursor] = useState(true);
 
   const prompts = [
-    "run a basic recon on my scoped target",
-    "pull down subdomains for target.com", 
-    "gather all endpoints for target.com"
+    "run basic recon on example.com",
+    "find subdomains for example.com", 
+    "scan ports on 192.168.1.100"
   ];
 
   useEffect(() => {

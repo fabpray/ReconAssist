@@ -19,9 +19,9 @@ export function FeaturesSection() {
   const features = [
     {
       icon: Brain,
-      title: "LLM-Guided Reconnaissance",
-      description: "Advanced AI models analyze findings, assess risk levels, and suggest next steps for maximum impact.",
-      badge: "AI-Powered"
+      title: "AI-Assisted Analysis",
+      description: "AI analyzes findings and provides insights, but you control all reconnaissance decisions and scope.",
+      badge: "AI-Assisted"
     },
     {
       icon: Search,
@@ -31,9 +31,9 @@ export function FeaturesSection() {
     },
     {
       icon: Target,
-      title: "Smart Scope Management",
-      description: "Define targets with natural language. Built-in safety controls prevent accidental out-of-scope testing.",
-      badge: "Safe"
+      title: "User-Controlled Scope",
+      description: "You define exact targets and scope. All reconnaissance stays strictly within your defined boundaries.",
+      badge: "User-Controlled"
     },
     {
       icon: Globe,

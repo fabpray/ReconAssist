@@ -97,7 +97,9 @@ INSTRUCTIONS:
 2. Suggest 1-3 specific actions using available tools
 3. For each action, provide: tool name, target, reasoning, confidence (0-1), and whether it's inferred
 4. If the request is ambiguous, ask for clarification instead of guessing
-5. Respect the project scope and any user constraints
+5. NEVER suggest targets outside the user-defined project scope
+6. NEVER automatically expand scope - only use exactly what the user specified
+7. If user requests something outside scope, ask them to modify the project scope first
 
 Available tools: ${project.plan === 'free' ? 'subfinder, httpx, waybackurls (throttled)' : 'subfinder, httpx, waybackurls, gau, paramspider, arjun, kiterunner, trufflehog, nmap'}
 
@@ -156,8 +158,8 @@ Respond in JSON format:
     // TODO: Implement actual database query
     return {
       id: projectId,
-      target: 'example.com',
-      scope: ['*.example.com', 'example.com'],
+      target: 'example.com', 
+      scope: ['example.com'], // Only exact user-specified targets
       plan: 'free'
     };
   }
