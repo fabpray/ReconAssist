@@ -1,11 +1,49 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Shield, Zap, Target } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "wouter";
 
 export function HeroSection() {
   const [domain, setDomain] = useState("");
+  const [currentPrompt, setCurrentPrompt] = useState(0);
+  const [displayText, setDisplayText] = useState("");
+  const [isTyping, setIsTyping] = useState(true);
+
+  const prompts = [
+    "run a basic recon on my scoped target",
+    "pull down subdomains for target.com", 
+    "gather all endpoints for target.com"
+  ];
+
+  useEffect(() => {
+    let timeout: NodeJS.Timeout;
+    
+    const typeText = (text: string, index: number = 0) => {
+      if (index <= text.length) {
+        setDisplayText(text.slice(0, index));
+        timeout = setTimeout(() => typeText(text, index + 1), 100);
+      } else {
+        // Wait 2 seconds before starting to delete
+        timeout = setTimeout(() => deleteText(text), 2000);
+      }
+    };
+
+    const deleteText = (text: string, index: number = text.length) => {
+      if (index >= 0) {
+        setDisplayText(text.slice(0, index));
+        timeout = setTimeout(() => deleteText(text, index - 1), 50);
+      } else {
+        // Move to next prompt and start typing
+        setCurrentPrompt((prev) => (prev + 1) % prompts.length);
+        timeout = setTimeout(() => typeText(prompts[(currentPrompt + 1) % prompts.length]), 500);
+      }
+    };
+
+    typeText(prompts[currentPrompt]);
+
+    return () => clearTimeout(timeout);
+  }, [currentPrompt]);
 
   const handleDemoSearch = () => {
     if (domain) {
@@ -35,7 +73,7 @@ export function HeroSection() {
               <div className="flex-1 flex items-center space-x-2">
                 <Search className="h-5 w-5 text-muted-foreground ml-3" />
                 <Input
-                  placeholder="Enter domain to analyze (e.g., example.com)"
+                  placeholder={`Ask ReconAI to ${displayText}`}
                   value={domain}
                   onChange={(e) => setDomain(e.target.value)}
                   className="border-0 focus-visible:ring-0 bg-transparent"
