@@ -1,0 +1,73 @@
+import { Button } from "@/components/ui/button";
+import { Shield, Menu } from "lucide-react";
+import { useState } from "react";
+import { Link } from "react-router-dom";
+
+export function Navigation() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  return (
+    <nav className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full border-b border-border">
+      <div className="container flex h-16 items-center justify-between">
+        <Link to="/" className="flex items-center space-x-2">
+          <Shield className="h-6 w-6 text-primary" />
+          <span className="text-xl font-bold">ReconAssistant</span>
+        </Link>
+
+        {/* Desktop Navigation */}
+        <div className="hidden md:flex items-center space-x-6">
+          <Link to="#features" className="text-muted-foreground hover:text-foreground transition-colors">
+            Features
+          </Link>
+          <Link to="#pricing" className="text-muted-foreground hover:text-foreground transition-colors">
+            Pricing
+          </Link>
+          <Link to="#demo" className="text-muted-foreground hover:text-foreground transition-colors">
+            Demo
+          </Link>
+          <Button asChild variant="outline">
+            <Link to="/auth">Sign In</Link>
+          </Button>
+          <Button asChild>
+            <Link to="/auth">Start Free Trial</Link>
+          </Button>
+        </div>
+
+        {/* Mobile Menu Button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="md:hidden"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+        >
+          <Menu className="h-6 w-6" />
+        </Button>
+      </div>
+
+      {/* Mobile Menu */}
+      {isMenuOpen && (
+        <div className="md:hidden border-t border-border bg-background">
+          <div className="container py-4 space-y-4">
+            <Link to="#features" className="block text-muted-foreground hover:text-foreground transition-colors">
+              Features
+            </Link>
+            <Link to="#pricing" className="block text-muted-foreground hover:text-foreground transition-colors">
+              Pricing
+            </Link>
+            <Link to="#demo" className="block text-muted-foreground hover:text-foreground transition-colors">
+              Demo
+            </Link>
+            <div className="space-y-2 pt-4">
+              <Button asChild variant="outline" className="w-full">
+                <Link to="/auth">Sign In</Link>
+              </Button>
+              <Button asChild className="w-full">
+                <Link to="/auth">Start Free Trial</Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </nav>
+  );
+}
