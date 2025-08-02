@@ -15,8 +15,12 @@ export function HeroSection() {
   };
 
   return (
-    <section className="relative py-20 px-4 bg-gradient-subtle">
-      <div className="container mx-auto text-center">
+    <section className="relative py-20 px-4 bg-gradient-subtle overflow-hidden">
+      {/* Animated background mesh */}
+      <div className="absolute inset-0 bg-gradient-mesh animate-pulse opacity-60"></div>
+      <div className="absolute inset-0 bg-gradient-mesh animate-pulse opacity-40" style={{ animationDelay: '2s' }}></div>
+      
+      <div className="container mx-auto text-center relative z-10">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-primary bg-clip-text text-transparent">
             AI-Powered Reconnaissance Platform
@@ -28,20 +32,26 @@ export function HeroSection() {
 
           {/* Domain Search */}
           <div className="max-w-2xl mx-auto mb-12">
-            <div className="flex flex-col sm:flex-row gap-4 p-2 bg-background rounded-lg shadow-elegant border">
-              <div className="flex-1 flex items-center space-x-2">
-                <Search className="h-5 w-5 text-muted-foreground ml-3" />
-                <Input
-                  placeholder="Enter domain to analyze (e.g., example.com)"
-                  value={domain}
-                  onChange={(e) => setDomain(e.target.value)}
-                  className="border-0 focus-visible:ring-0 bg-transparent"
-                  onKeyPress={(e) => e.key === 'Enter' && handleDemoSearch()}
-                />
+            <div className="relative">
+              {/* Glass morphism container */}
+              <div className="flex flex-col sm:flex-row gap-4 p-4 bg-glass backdrop-blur-glass rounded-xl shadow-elegant border border-white/20 dark:border-white/10">
+                <div className="flex-1 flex items-center space-x-2">
+                  <Search className="h-5 w-5 text-muted-foreground ml-3" />
+                  <Input
+                    placeholder="Enter domain to analyze (e.g., example.com)"
+                    value={domain}
+                    onChange={(e) => setDomain(e.target.value)}
+                    className="border-0 focus-visible:ring-0 bg-transparent placeholder:text-muted-foreground/70"
+                    onKeyPress={(e) => e.key === 'Enter' && handleDemoSearch()}
+                  />
+                </div>
+                <Button onClick={handleDemoSearch} className="whitespace-nowrap shadow-glow">
+                  Start Recon
+                </Button>
               </div>
-              <Button onClick={handleDemoSearch} className="whitespace-nowrap">
-                Start Recon
-              </Button>
+              
+              {/* Subtle glow effect */}
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary/5 to-primary-glow/5 blur-xl -z-10"></div>
             </div>
             <p className="text-sm text-muted-foreground mt-2">
               Try it free • No credit card required
@@ -50,8 +60,8 @@ export function HeroSection() {
 
           {/* Feature highlights */}
           <div className="grid md:grid-cols-3 gap-8 mb-12">
-            <div className="text-center">
-              <div className="bg-primary/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+            <div className="text-center group">
+              <div className="bg-primary/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/20 transition-colors shadow-glow">
                 <Target className="h-8 w-8 text-primary" />
               </div>
               <h3 className="text-lg font-semibold mb-2">Smart Scoping</h3>
@@ -59,8 +69,8 @@ export function HeroSection() {
                 Define reconnaissance scope with natural language and safety controls
               </p>
             </div>
-            <div className="text-center">
-              <div className="bg-primary/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+            <div className="text-center group">
+              <div className="bg-primary/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/20 transition-colors shadow-glow">
                 <Zap className="h-8 w-8 text-primary" />
               </div>
               <h3 className="text-lg font-semibold mb-2">Automated Discovery</h3>
@@ -68,8 +78,8 @@ export function HeroSection() {
                 20+ reconnaissance tools orchestrated by AI for comprehensive coverage
               </p>
             </div>
-            <div className="text-center">
-              <div className="bg-primary/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+            <div className="text-center group">
+              <div className="bg-primary/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/20 transition-colors shadow-glow">
                 <Shield className="h-8 w-8 text-primary" />
               </div>
               <h3 className="text-lg font-semibold mb-2">Intelligent Analysis</h3>
