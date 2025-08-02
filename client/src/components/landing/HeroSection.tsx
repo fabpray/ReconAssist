@@ -62,25 +62,7 @@ export function HeroSection() {
   };
 
   return (
-    <section className="min-h-screen relative overflow-hidden">
-      {/* Background gradients */}
-      <div className="absolute inset-0 bg-gradient-mesh"></div>
-      
-      {/* Flowing lines background */}
-      <div className="absolute inset-0 opacity-40">
-        <svg className="absolute top-1/4 right-0 w-2/3 h-2/3" viewBox="0 0 800 600" fill="none">
-          <path d="M400 100 Q600 200 400 300 Q200 400 400 500" stroke="url(#gradient1)" strokeWidth="2" fill="none" opacity="0.6"/>
-          <path d="M450 120 Q650 220 450 320 Q250 420 450 520" stroke="url(#gradient1)" strokeWidth="1.5" fill="none" opacity="0.4"/>
-          <path d="M350 80 Q550 180 350 280 Q150 380 350 480" stroke="url(#gradient1)" strokeWidth="1" fill="none" opacity="0.3"/>
-          <defs>
-            <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="hsl(263, 70%, 50%)" />
-              <stop offset="100%" stopColor="hsl(267, 83%, 58%)" />
-            </linearGradient>
-          </defs>
-        </svg>
-      </div>
-
+    <div className="min-h-screen bg-background">
       {/* Navigation */}
       <nav className="relative z-10 flex justify-between items-center p-6 max-w-7xl mx-auto">
         <div className="flex items-center space-x-2">
@@ -88,14 +70,35 @@ export function HeroSection() {
           <span className="text-xl font-bold">ReconAI</span>
         </div>
         <div className="hidden md:flex items-center space-x-8">
+          <a href="#about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">About</a>
           <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Features</a>
           <a href="#pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Pricing</a>
           <a href="#docs" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Docs</a>
+          <a href="#contact" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Contact</a>
           <Button size="sm" className="rounded-full">Sign In</Button>
         </div>
       </nav>
 
-      <div className="relative z-10 flex items-center justify-center min-h-[calc(100vh-100px)] px-6">
+      <section className="min-h-[calc(100vh-80px)] relative overflow-hidden">
+        {/* Background gradients */}
+        <div className="absolute inset-0 bg-gradient-mesh"></div>
+        
+        {/* Flowing lines background */}
+        <div className="absolute inset-0 opacity-40">
+          <svg className="absolute top-1/4 right-0 w-2/3 h-2/3" viewBox="0 0 800 600" fill="none">
+            <path d="M400 100 Q600 200 400 300 Q200 400 400 500" stroke="url(#gradient1)" strokeWidth="2" fill="none" opacity="0.6"/>
+            <path d="M450 120 Q650 220 450 320 Q250 420 450 520" stroke="url(#gradient1)" strokeWidth="1.5" fill="none" opacity="0.4"/>
+            <path d="M350 80 Q550 180 350 280 Q150 380 350 480" stroke="url(#gradient1)" strokeWidth="1" fill="none" opacity="0.3"/>
+            <defs>
+              <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="hsl(263, 70%, 50%)" />
+                <stop offset="100%" stopColor="hsl(267, 83%, 58%)" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+
+        <div className="relative z-10 flex items-center justify-center min-h-[calc(100vh-160px)] px-6">
         <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
           
           {/* Left content */}
@@ -160,8 +163,9 @@ export function HeroSection() {
               </div>
             </div>
           </div>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
   );
 }
