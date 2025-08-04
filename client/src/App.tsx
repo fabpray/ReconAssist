@@ -14,7 +14,7 @@ import { ProjectPage } from "./pages/ProjectPage";
 import { CreateProjectPage } from "./pages/CreateProjectPage";
 import { OnboardingPage } from "./pages/OnboardingPage";
 import { TestPage } from "./pages/TestPage";
-import { TestChatPage } from "./pages/TestChatPage";
+import { TestChatPage } from "./pages/TestChatPage.tsx";
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
