@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ActionCard as ActionCardType } from '../../../shared/types.js';
+import { ActionCard as ActionCardType } from '@shared/types';
 
 interface Message {
   id: string;
@@ -58,17 +58,37 @@ export function ChatInterface({ projectId, projectName, target }: ChatInterfaceP
     setIsLoading(true);
 
     try {
-      // TODO: Replace with actual API call to backend decision loop
-      const response = await simulateDecisionLoop(input, projectId);
+      // Call the backend decision loop API
+      const response = await fetch(`/api/projects/${projectId}/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: input,
+          user_id: '1' // Using test user for now
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get AI decision');
+      }
+
+      const data = await response.json();
+      const decision = data.decision;
       
       const assistantMessage: Message = {
         id: `msg_${Date.now()}_assistant`,
         type: 'assistant',
-        content: response.clarification || 'Here are my suggested actions:',
+        content: decision.clarification_question || 'Here are my suggested actions:',
         timestamp: new Date(),
-        actions: response.clarification ? undefined : response.actions,
-        reasoning: response.reasoning,
-        clarification: response.clarification
+        actions: decision.clarification_question ? undefined : decision.actions?.map((action: any) => ({
+          ...action,
+          id: `action_${Date.now()}_${Math.random()}`,
+          status: 'suggested' as const
+        })),
+        reasoning: decision.reasoning,
+        clarification: decision.clarification_question
       };
 
       setMessages(prev => [...prev, assistantMessage]);
@@ -86,10 +106,20 @@ export function ChatInterface({ projectId, projectName, target }: ChatInterfaceP
   };
 
   const handleAcceptAction = async (actionId: string) => {
-    // TODO: Implement action acceptance and queueing
     console.log('Accepting action:', actionId);
     
-    // Update action status in the message
+    // Find the action from messages
+    let actionToExecute: ActionCardType | undefined;
+    for (const msg of messages) {
+      if (msg.actions) {
+        actionToExecute = msg.actions.find(a => a.id === actionId);
+        if (actionToExecute) break;
+      }
+    }
+
+    if (!actionToExecute) return;
+    
+    // Update action status to running
     setMessages(prev => prev.map(msg => ({
       ...msg,
       actions: msg.actions?.map(action => 
@@ -99,7 +129,65 @@ export function ChatInterface({ projectId, projectName, target }: ChatInterfaceP
       )
     })));
 
-    // TODO: Call backend to enqueue action
+    try {
+      // Call backend to execute the tool
+      const response = await fetch(`/api/projects/${projectId}/tools/execute`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          tool: actionToExecute.tool,
+          target: actionToExecute.target,
+          user_plan: 'free', // TODO: Get from user context
+          api_keys: {},
+          headers: {}
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Update action status to completed and add results
+        setMessages(prev => prev.map(msg => ({
+          ...msg,
+          actions: msg.actions?.map(action => 
+            action.id === actionId 
+              ? { ...action, status: 'completed' as const, result: data.result }
+              : action
+          )
+        })));
+
+        // Add a system message with results
+        const resultMessage: Message = {
+          id: `msg_${Date.now()}_result`,
+          type: 'system',
+          content: `Tool ${actionToExecute.tool} completed successfully. Found ${data.result?.output?.length || 0} results.`,
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, resultMessage]);
+      } else {
+        throw new Error('Tool execution failed');
+      }
+    } catch (error) {
+      // Update action status to failed
+      setMessages(prev => prev.map(msg => ({
+        ...msg,
+        actions: msg.actions?.map(action => 
+          action.id === actionId 
+            ? { ...action, status: 'rejected' as const }
+            : action
+        )
+      })));
+
+      const errorMessage: Message = {
+        id: `msg_${Date.now()}_error`,
+        type: 'system',
+        content: `Failed to execute ${actionToExecute.tool}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    }
   };
 
   const handleRejectAction = (actionId: string) => {

@@ -239,4 +239,40 @@ export class ProjectManager {
     console.log(`Cleaned up ${deletedCount} old projects`);
     return deletedCount;
   }
+
+  async getProjectMetrics(projectId: string): Promise<any> {
+    // Generate mock metrics for now - TODO: implement real metrics
+    return {
+      id: projectId,
+      overall_score: 85,
+      discovery_progress: 70,
+      vulnerability_count: 3,
+      last_updated: new Date().toISOString(),
+      findings: {
+        total: 12,
+        critical: 1,
+        high: 2,
+        medium: 5,
+        low: 4
+      },
+      coverage: {
+        subdomains: 85,
+        endpoints: 60,
+        technologies: 75
+      }
+    };
+  }
+
+  async getUserMetrics(userId: string): Promise<any> {
+    // Generate mock user metrics - TODO: implement real metrics
+    const projects = await this.getUserProjects(userId);
+    
+    return {
+      total_projects: projects.length,
+      active_projects: projects.filter(p => p.status === 'active').length,
+      total_findings: 45,
+      critical_findings: 3,
+      last_activity: new Date().toISOString()
+    };
+  }
 }

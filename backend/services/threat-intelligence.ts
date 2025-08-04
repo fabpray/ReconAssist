@@ -395,4 +395,41 @@ export class ThreatIntelligenceEngine {
 
     return Math.round(domainScore + endpointScore + vulnScore + secretScore);
   }
+
+  assessThreats(findings: any[]): any {
+    // Assess threat level based on findings
+    const criticalFindings = findings.filter(f => f.severity === 'critical').length;
+    const highFindings = findings.filter(f => f.severity === 'high').length;
+    
+    let threatLevel = 'low';
+    if (criticalFindings > 0) {
+      threatLevel = 'critical';
+    } else if (highFindings > 2) {
+      threatLevel = 'high';
+    } else if (highFindings > 0) {
+      threatLevel = 'medium';
+    }
+
+    return {
+      overall_risk: threatLevel,
+      findings_count: findings.length,
+      critical_count: criticalFindings,
+      high_count: highFindings,
+      recommendations: this.generateRecommendations(findings)
+    };
+  }
+
+  private generateRecommendations(findings: any[]): string[] {
+    const recommendations = [];
+    
+    if (findings.some(f => f.type === 'endpoint' && f.severity === 'critical')) {
+      recommendations.push('Immediately secure exposed administrative interfaces');
+    }
+    
+    if (findings.some(f => f.type === 'subdomain')) {
+      recommendations.push('Review and secure all discovered subdomains');
+    }
+    
+    return recommendations;
+  }
 }
