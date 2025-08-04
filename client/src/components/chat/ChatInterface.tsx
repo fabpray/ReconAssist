@@ -14,6 +14,8 @@ interface Message {
   actions?: ActionCardType[];
   reasoning?: string;
   clarification?: string;
+  isStreaming?: boolean;
+  analysis?: string;
 }
 
 interface ChatInterfaceProps {

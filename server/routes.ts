@@ -99,6 +99,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Streaming chat interface for real-time responses
+  app.post('/api/projects/:id/chat/stream', async (req, res) => {
+    try {
+      const { message, user_id } = req.body;
+      
+      res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Cache-Control'
+      });
+
+      // Send analysis phase
+      res.write(`data: ${JSON.stringify({ type: 'analysis', content: 'Analyzing your request...' })}\n\n`);
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      // Process with AI
+      const decision = await decisionLoop.processUserInput(req.params.id, message, user_id);
+      
+      // Generate conversational response based on the decision
+      let response = '';
+      if (decision.actions && decision.actions.length > 0) {
+        response = `I'll help you with reconnaissance on your target. Based on your request "${message}", I'm going to start by running ${decision.actions.map(a => a.tool).join(' and ')} to gather intelligence about ${decision.actions[0].target}.\n\nHere's my analysis: ${decision.reasoning}`;
+      } else {
+        response = `I understand your request "${message}". ${decision.reasoning}`;
+      }
+
+      // Stream the response word by word
+      const words = response.split(' ');
+      for (let i = 0; i < words.length; i++) {
+        const chunk = words.slice(0, i + 1).join(' ');
+        res.write(`data: ${JSON.stringify({ type: 'response', content: chunk })}\n\n`);
+        await new Promise(resolve => setTimeout(resolve, 30));
+      }
+
+      // Send the actions for UI interaction
+      if (decision.actions && decision.actions.length > 0) {
+        res.write(`data: ${JSON.stringify({ 
+          type: 'actions', 
+          actions: decision.actions,
+          reasoning: decision.reasoning,
+          confidence: decision.confidence 
+        })}\n\n`);
+      }
+
+      res.write(`data: ${JSON.stringify({ type: 'done' })}\n\n`);
+      res.end();
+      
+    } catch (error) {
+      res.write(`data: ${JSON.stringify({ type: 'error', error: getErrorMessage(error) })}\n\n`);
+      res.end();
+    }
+  });
+
   // Tool execution routes
   app.post('/api/projects/:id/tools/execute', async (req, res) => {
     try {
