@@ -415,11 +415,11 @@ export class ThreatIntelligenceEngine {
       findings_count: findings.length,
       critical_count: criticalFindings,
       high_count: highFindings,
-      recommendations: this.generateRecommendations(findings)
+      recommendations: this.generateSimpleRecommendations(findings)
     };
   }
 
-  private generateRecommendations(findings: any[]): string[] {
+  private generateSimpleRecommendations(findings: any[]): string[] {
     const recommendations = [];
     
     if (findings.some(f => f.type === 'endpoint' && f.severity === 'critical')) {
