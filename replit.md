@@ -27,6 +27,14 @@ A full-stack reconnaissance and security assessment dashboard built with React, 
 ```
 
 ## Recent Changes
+- **2025-08-04 - Migration Complete**: Successfully migrated project from Replit Agent to Replit environment
+  - Fixed database connection by switching from Neon (@neondatabase/serverless) to standard PostgreSQL (pg)
+  - Updated database driver configuration to use drizzle-orm/node-postgres
+  - Created PostgreSQL database and pushed complete schema with all tables
+  - Verified application startup and functionality - server running on port 5000
+  - All dependencies properly installed and working
+  - Database schema includes comprehensive reconnaissance tables: users, projects, runs, findings, messages, etc.
+
 - **2025-08-04 - Chat Integration Complete**: Successfully connected frontend chat interface to backend AI
   - Implemented real-time chat interface with OpenRouter/DeepSeek AI integration
   - Connected tool execution pipeline - users can now accept AI suggestions and run reconnaissance tools
