@@ -27,6 +27,13 @@ A full-stack reconnaissance and security assessment dashboard built with React, 
 ```
 
 ## Recent Changes
+- **2025-08-04 - Chat AI Logic Fixed**: Improved chat intelligence to provide contextually appropriate responses
+  - Fixed LLMClient generateMockDecision to detect conversational vs reconnaissance messages
+  - Added proper greeting detection and conversational response generation
+  - Chat now responds appropriately to simple messages like "Hi" instead of suggesting irrelevant reconnaissance actions
+  - Updated response formatting in routes to handle conversational messages without forced reconnaissance context
+  - AI assistant now only suggests reconnaissance tools when there's clear intent or target specified
+
 - **2025-08-04 - Migration Complete**: Successfully migrated project from Replit Agent to Replit environment
   - Fixed database connection by switching from Neon (@neondatabase/serverless) to standard PostgreSQL (pg)
   - Updated database driver configuration to use drizzle-orm/node-postgres

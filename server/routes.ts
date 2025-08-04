@@ -124,7 +124,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (decision.actions && decision.actions.length > 0) {
         response = `I'll help you with reconnaissance on your target. Based on your request "${message}", I'm going to start by running ${decision.actions.map(a => a.tool).join(' and ')} to gather intelligence about ${decision.actions[0].target}.\n\nHere's my analysis: ${decision.reasoning}`;
       } else {
-        response = `I understand your request "${message}". ${decision.reasoning}`;
+        // For conversational messages without actions, just use the reasoning directly
+        response = decision.reasoning;
       }
 
       // Stream the response word by word

@@ -109,64 +109,120 @@ export class LLMClient {
     // Generate realistic mock decisions based on prompt content
     const lowerPrompt = prompt.toLowerCase();
     const actions: ActionCard[] = [];
+    
+    // Check if this is a conversational/greeting message
+    const greetings = ['hi', 'hello', 'hey', 'good morning', 'good afternoon', 'good evening', 'how are you'];
+    const isGreeting = greetings.some(greeting => lowerPrompt.includes(greeting));
+    
+    const conversationalWords = ['thanks', 'thank you', 'ok', 'okay', 'yes', 'no', 'sure', 'please'];
+    const isConversational = conversationalWords.some(word => lowerPrompt.includes(word));
+    
+    // Check if this is a help/question message
+    const questionWords = ['help', 'what', 'how', 'why', 'when', 'where', 'who', 'can you', 'do you'];
+    const isQuestion = questionWords.some(word => lowerPrompt.includes(word));
+    
+    // Only suggest reconnaissance actions if the prompt clearly indicates reconnaissance intent
+    const hasTarget = this.extractTarget(prompt) !== 'example.com';
+    const reconKeywords = ['scan', 'recon', 'reconnaissance', 'enumerate', 'discover', 'find', 'search', 'probe', 'check', 'analyze', 'test', 'audit'];
+    const hasReconIntent = reconKeywords.some(keyword => lowerPrompt.includes(keyword));
 
-    if (lowerPrompt.includes('subdomain') || lowerPrompt.includes('discover') || lowerPrompt.includes('enumerate')) {
-      actions.push({
-        tool: 'subfinder',
-        target: this.extractTarget(prompt),
-        reason: 'Discover subdomains to map the attack surface',
+    // Don't suggest actions for simple greetings or conversations
+    if (isGreeting || (isConversational && !hasReconIntent) || (isQuestion && !hasReconIntent && !hasTarget)) {
+      return {
+        actions: [],
+        reasoning: this.generateConversationalResponse(prompt),
         confidence: 0.9,
-        inferred: false
-      });
+        needs_clarification: false
+      };
     }
 
-    if (lowerPrompt.includes('endpoint') || lowerPrompt.includes('url') || lowerPrompt.includes('directory')) {
-      actions.push({
-        tool: 'gau',
-        target: this.extractTarget(prompt),
-        reason: 'Gather URLs from web archives to find hidden endpoints',
-        confidence: 0.8,
-        inferred: true
-      });
+    // Only suggest reconnaissance actions if there's clear intent or a target
+    if (hasReconIntent || hasTarget) {
+      if (lowerPrompt.includes('subdomain') || lowerPrompt.includes('discover') || lowerPrompt.includes('enumerate')) {
+        actions.push({
+          tool: 'subfinder',
+          target: this.extractTarget(prompt),
+          reason: 'Discover subdomains to map the attack surface',
+          confidence: 0.9,
+          inferred: false
+        });
+      }
+
+      if (lowerPrompt.includes('endpoint') || lowerPrompt.includes('url') || lowerPrompt.includes('directory')) {
+        actions.push({
+          tool: 'gau',
+          target: this.extractTarget(prompt),
+          reason: 'Gather URLs from web archives to find hidden endpoints',
+          confidence: 0.8,
+          inferred: true
+        });
+      }
+
+      if (lowerPrompt.includes('alive') || lowerPrompt.includes('active') || lowerPrompt.includes('probe')) {
+        actions.push({
+          tool: 'httpx',
+          target: this.extractTarget(prompt),
+          reason: 'Probe discovered subdomains for active HTTP services',
+          confidence: 0.85,
+          inferred: false
+        });
+      }
+
+      if (lowerPrompt.includes('secret') || lowerPrompt.includes('leak') || lowerPrompt.includes('credential')) {
+        actions.push({
+          tool: 'trufflehog',
+          target: this.extractTarget(prompt),
+          reason: 'Scan for leaked secrets and credentials',
+          confidence: 0.75,
+          inferred: true
+        });
+      }
+
+      // If reconnaissance intent is clear but no specific actions identified, suggest basic recon
+      if (actions.length === 0 && (hasReconIntent || hasTarget)) {
+        actions.push({
+          tool: 'subfinder',
+          target: this.extractTarget(prompt),
+          reason: 'Start with subdomain enumeration as the foundation of reconnaissance',
+          confidence: 0.7,
+          inferred: true
+        });
+      }
     }
 
-    if (lowerPrompt.includes('alive') || lowerPrompt.includes('active') || lowerPrompt.includes('probe')) {
-      actions.push({
-        tool: 'httpx',
-        target: this.extractTarget(prompt),
-        reason: 'Probe discovered subdomains for active HTTP services',
-        confidence: 0.85,
-        inferred: false
-      });
-    }
-
-    if (lowerPrompt.includes('secret') || lowerPrompt.includes('leak') || lowerPrompt.includes('credential')) {
-      actions.push({
-        tool: 'trufflehog',
-        target: this.extractTarget(prompt),
-        reason: 'Scan for leaked secrets and credentials',
-        confidence: 0.75,
-        inferred: true
-      });
-    }
-
-    // If no specific actions identified, suggest basic reconnaissance
-    if (actions.length === 0) {
-      actions.push({
-        tool: 'subfinder',
-        target: this.extractTarget(prompt),
-        reason: 'Start with subdomain enumeration as the foundation of reconnaissance',
-        confidence: 0.7,
-        inferred: true
-      });
+    // Generate appropriate reasoning based on whether actions were suggested
+    let reasoning: string;
+    if (actions.length > 0) {
+      reasoning = `Based on your request, I recommend starting with ${actions.length === 1 ? 'this action' : 'these actions'} to gather intelligence about the target.`;
+    } else {
+      reasoning = this.generateConversationalResponse(prompt);
     }
 
     return {
       actions: actions.slice(0, 2), // Limit to 2 actions as per spec
-      reasoning: `Based on your request, I recommend starting with ${actions.length === 1 ? 'this action' : 'these actions'} to gather initial intelligence about the target.`,
-      confidence: actions.length > 0 ? Math.max(...actions.map(a => a.confidence)) : 0.5,
+      reasoning: reasoning,
+      confidence: actions.length > 0 ? Math.max(...actions.map(a => a.confidence)) : 0.9,
       needs_clarification: false
     };
+  }
+
+  private generateConversationalResponse(prompt: string): string {
+    const lowerPrompt = prompt.toLowerCase();
+    
+    if (lowerPrompt.includes('hi') || lowerPrompt.includes('hello') || lowerPrompt.includes('hey')) {
+      return "Hello! I'm your reconnaissance assistant. I can help you with security testing and reconnaissance tasks. What would you like to investigate today?";
+    }
+    
+    if (lowerPrompt.includes('help') || lowerPrompt.includes('what can you do')) {
+      return "I can help you with reconnaissance and security testing tasks including subdomain discovery, endpoint enumeration, vulnerability scanning, and more. Just describe what you'd like to investigate or specify a target domain.";
+    }
+    
+    if (lowerPrompt.includes('thanks') || lowerPrompt.includes('thank you')) {
+      return "You're welcome! Feel free to ask me about any reconnaissance tasks you'd like to perform.";
+    }
+    
+    // Generic conversational response
+    return "I understand. Is there a specific reconnaissance task or target you'd like me to help you with?";
   }
 
   private extractTarget(prompt: string): string {
