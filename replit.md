@@ -31,8 +31,9 @@ A full-stack reconnaissance and security assessment dashboard built with React, 
   - Implemented real-time chat interface with OpenRouter/DeepSeek AI integration
   - Connected tool execution pipeline - users can now accept AI suggestions and run reconnaissance tools
   - Added authentication system with user session management
-  - Created test chat page to demonstrate working AI-powered reconnaissance assistant
+  - Created test chat page at `/test-chat` to demonstrate working AI-powered reconnaissance assistant
   - Fixed all TypeScript errors and backend API integration issues
+  - Removed legacy test endpoint that had data structure conflicts
   - Chat now provides intelligent tool recommendations and executes them on user approval
 
 - **2025-08-04**: Successfully migrated from Replit Agent to Replit environment
