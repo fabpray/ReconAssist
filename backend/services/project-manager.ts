@@ -1,9 +1,9 @@
-import { Project, InsertProject } from '../../shared/types';
+import { Project, InsertProject } from '../../shared/schema';
 import { TierEnforcer } from './tier-enforcer';
+import { storage } from '../../server/storage';
 
 export class ProjectManager {
   private tierEnforcer: TierEnforcer;
-  private projects: Map<string, Project> = new Map();
 
   constructor() {
     this.tierEnforcer = new TierEnforcer();
@@ -29,55 +29,38 @@ export class ProjectManager {
       throw new Error(scopeValidation.reason);
     }
 
-    // Create project
-    const projectId = `project_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const project: Project = {
-      id: projectId,
+    // Create project using storage
+    const insertProject: InsertProject = {
       user_id: userId,
       name,
       target,
       scope,
       status: 'active',
-      plan,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      plan
     };
 
-    this.projects.set(projectId, project);
-    console.log(`Created project ${projectId} for user ${userId}`);
+    const project = await storage.createProject(insertProject);
+    console.log(`Created project ${project.id} for user ${userId}`);
     
     return project;
   }
 
   async getProject(projectId: string): Promise<Project | null> {
-    const project = this.projects.get(projectId);
+    const project = await storage.getProject(projectId);
     return project || null;
   }
 
   async getUserProjects(userId: string): Promise<Project[]> {
     const userIdNum = parseInt(userId);
-    return Array.from(this.projects.values()).filter(
-      project => project.user_id === userIdNum
-    );
+    return await storage.getUserProjects(userIdNum);
   }
 
   async updateProject(
     projectId: string,
     updates: Partial<Project>
   ): Promise<Project | null> {
-    const existingProject = this.projects.get(projectId);
-    if (!existingProject) {
-      return null;
-    }
-
-    const updatedProject: Project = {
-      ...existingProject,
-      ...updates,
-      updated_at: new Date().toISOString()
-    };
-
-    this.projects.set(projectId, updatedProject);
-    return updatedProject;
+    const updatedProject = await storage.updateProject(projectId, updates);
+    return updatedProject || null;
   }
 
   async updateProjectScope(
@@ -85,7 +68,7 @@ export class ProjectManager {
     scope: string[],
     plan: 'free' | 'paid'
   ): Promise<void> {
-    const project = this.projects.get(projectId);
+    const project = await storage.getProject(projectId);
     if (!project) {
       throw new Error('Project not found');
     }
@@ -97,19 +80,15 @@ export class ProjectManager {
     }
 
     // Update project
-    project.scope = scope;
-    project.updated_at = new Date().toISOString();
-    
-    this.projects.set(projectId, project);
+    await storage.updateProject(projectId, { scope });
     console.log(`Updated scope for project ${projectId}`);
   }
 
   async deleteProject(projectId: string): Promise<boolean> {
-    const deleted = this.projects.delete(projectId);
-    if (deleted) {
-      console.log(`Deleted project ${projectId}`);
-    }
-    return deleted;
+    // Note: This would require implementing a delete method in storage
+    // For now, we'll just mark as deleted or return false
+    console.log(`Delete project ${projectId} - not implemented yet`);
+    return false;
   }
 
   async pauseProject(projectId: string): Promise<Project | null> {
@@ -129,7 +108,7 @@ export class ProjectManager {
     projectId: string,
     userId: number
   ): Promise<{ valid: boolean; reason?: string }> {
-    const project = this.projects.get(projectId);
+    const project = await storage.getProject(projectId);
     
     if (!project) {
       return { valid: false, reason: 'Project not found' };
@@ -149,7 +128,7 @@ export class ProjectManager {
     created_days_ago: number;
     last_updated_hours_ago: number;
   } | null> {
-    const project = this.projects.get(projectId);
+    const project = await storage.getProject(projectId);
     if (!project) {
       return null;
     }
@@ -178,9 +157,7 @@ export class ProjectManager {
     free_projects: number;
     paid_projects: number;
   }> {
-    const userProjects = Array.from(this.projects.values()).filter(
-      project => project.user_id === userId
-    );
+    const userProjects = await storage.getUserProjects(userId);
 
     return {
       total_projects: userProjects.length,
@@ -198,7 +175,7 @@ export class ProjectManager {
     entry: string,
     userPlan: 'free' | 'paid'
   ): Promise<{ success: boolean; reason?: string }> {
-    const project = this.projects.get(projectId);
+    const project = await storage.getProject(projectId);
     if (!project) {
       return { success: false, reason: 'Project not found' };
     }
@@ -214,9 +191,7 @@ export class ProjectManager {
       return { success: false, reason: validation.reason };
     }
 
-    project.scope = newScope;
-    project.updated_at = new Date().toISOString();
-    this.projects.set(projectId, project);
+    await storage.updateProject(projectId, { scope: newScope });
 
     return { success: true };
   }
@@ -225,7 +200,7 @@ export class ProjectManager {
     projectId: string,
     entry: string
   ): Promise<{ success: boolean; reason?: string }> {
-    const project = this.projects.get(projectId);
+    const project = await storage.getProject(projectId);
     if (!project) {
       return { success: false, reason: 'Project not found' };
     }
@@ -235,9 +210,9 @@ export class ProjectManager {
       return { success: false, reason: 'Entry not found in scope' };
     }
 
-    project.scope.splice(entryIndex, 1);
-    project.updated_at = new Date().toISOString();
-    this.projects.set(projectId, project);
+    const newScope = [...project.scope];
+    newScope.splice(entryIndex, 1);
+    await storage.updateProject(projectId, { scope: newScope });
 
     return { success: true };
   }

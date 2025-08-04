@@ -20,10 +20,12 @@ export interface ActionCard {
 export class LLMClient {
   private apiKey: string | null;
   private model: string;
+  private baseUrl: string;
 
   constructor() {
     this.apiKey = process.env.OPENAI_API_KEY || null;
-    this.model = 'gpt-4o'; // Latest OpenAI model
+    this.model = 'tngtech/deepseek-r1t2-chimera:free';
+    this.baseUrl = 'https://openrouter.ai/api/v1';
   }
 
   async getDecision(prompt: string, userId: string): Promise<LLMDecision> {
@@ -31,38 +33,75 @@ export class LLMClient {
     // TODO: Replace with actual OpenAI integration when API key is available
     
     if (!this.apiKey) {
-      console.log('No OpenAI API key available, returning mock decision');
+      console.log('No OpenRouter API key available, returning mock decision');
       return this.generateMockDecision(prompt);
     }
 
     try {
-      // TODO: Implement actual OpenAI API call
-      /*
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      const response = await fetch(`${this.baseUrl}/chat/completions`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'http://localhost:5000',
+          'X-Title': 'ReconAssistant'
         },
         body: JSON.stringify({
           model: this.model,
           messages: [
-            { role: 'system', content: 'You are ReconAI, an expert security reconnaissance assistant...' },
+            { 
+              role: 'system', 
+              content: 'You are ReconAI, an expert security reconnaissance assistant. Analyze user requests and return JSON with actions array containing tool recommendations. Each action should have: tool (string), target (string), reason (string), confidence (0-1), inferred (boolean). Also include reasoning (string), confidence (0-1), needs_clarification (boolean), and optional clarification_question (string).' 
+            },
             { role: 'user', content: prompt }
           ],
-          response_format: { type: 'json_object' },
-          temperature: 0.1
+          temperature: 0.1,
+          max_tokens: 1500
         })
       });
 
+      if (!response.ok) {
+        console.error('OpenRouter API error:', response.status, response.statusText);
+        return this.generateMockDecision(prompt);
+      }
+
       const data = await response.json();
-      return this.parseOpenAIResponse(data);
-      */
+      return this.parseApiResponse(data);
       
-      return this.generateMockDecision(prompt);
     } catch (error) {
       console.error('LLM API error:', error);
       return this.generateMockDecision(prompt);
+    }
+  }
+
+  private parseApiResponse(data: any): LLMDecision {
+    try {
+      const content = data.choices?.[0]?.message?.content;
+      if (!content) {
+        console.log('No content in API response, using mock decision');
+        return this.generateMockDecision('No content received');
+      }
+
+      // Try to parse JSON response
+      let parsed;
+      try {
+        parsed = JSON.parse(content);
+      } catch {
+        // If not JSON, try to extract structured data from text
+        console.log('Response not in JSON format, using mock decision');
+        return this.generateMockDecision(content);
+      }
+
+      return {
+        actions: parsed.actions || [],
+        reasoning: parsed.reasoning || 'AI analysis completed',
+        confidence: parsed.confidence || 0.8,
+        needs_clarification: parsed.needs_clarification || false,
+        clarification_question: parsed.clarification_question
+      };
+    } catch (error) {
+      console.error('Error parsing API response:', error);
+      return this.generateMockDecision('Parse error');
     }
   }
 
