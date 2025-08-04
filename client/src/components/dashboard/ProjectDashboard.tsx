@@ -26,12 +26,23 @@ export function ProjectDashboard({ projectId }: ProjectDashboardProps) {
 
   const loadProjectData = async () => {
     try {
-      // TODO: Replace with actual API calls
-      const projectData = await mockGetProject(projectId);
-      const scoreData = await mockGetReconScore(projectId);
-      
-      setProject(projectData);
-      setReconScore(scoreData);
+      // Load project from backend
+      const projectResponse = await fetch(`/api/projects/${projectId}`);
+      if (projectResponse.ok) {
+        const projectData = await projectResponse.json();
+        setProject(projectData.project);
+      } else {
+        console.error('Failed to load project');
+      }
+
+      // Load project metrics
+      const metricsResponse = await fetch(`/api/projects/${projectId}/metrics`);
+      if (metricsResponse.ok) {
+        const metricsData = await metricsResponse.json();
+        setReconScore(metricsData.metrics);
+      } else {
+        console.error('Failed to load metrics');
+      }
     } catch (error) {
       console.error('Failed to load project data:', error);
     } finally {

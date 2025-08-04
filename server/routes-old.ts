@@ -1,17 +1,17 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+
+// Helper function for error handling
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : 'Unknown error';
+}
 import { DecisionLoop } from '../backend/services/decision-loop';
 import { LLMClient } from '../backend/services/llm-client';
 import { ProjectManager } from '../backend/services/project-manager';
 import { ToolRunner } from '../backend/services/tool-runner';
 import { KeyManager } from '../backend/services/key-manager';
 import { ThreatIntelligenceEngine } from '../backend/services/threat-intelligence';
-
-// Helper function for error handling
-function getErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : 'Unknown error';
-}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize services
@@ -29,7 +29,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.createUser({ username, password, plan });
       res.json({ success: true, user: { id: user.id, username: user.username, plan: user.plan } });
     } catch (error) {
-      res.status(400).json({ error: getErrorMessage(error) });
+      res.status(400).json({ error: error.message });
     }
   });
 
@@ -42,7 +42,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.json({ success: true, user: { id: user.id, username: user.username, plan: user.plan } });
     } catch (error) {
-      res.status(400).json({ error: getErrorMessage(error) });
+      res.status(400).json({ error: error.message });
     }
   });
 
@@ -53,7 +53,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const project = await projectManager.createProject(user_id, name, target, scope, plan);
       res.json({ success: true, project });
     } catch (error) {
-      res.status(400).json({ error: getErrorMessage(error) });
+      res.status(400).json({ error: error.message });
     }
   });
 
@@ -65,7 +65,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.json({ project });
     } catch (error) {
-      res.status(400).json({ error: getErrorMessage(error) });
+      res.status(400).json({ error: error.message });
     }
   });
 
@@ -74,7 +74,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const projects = await projectManager.getUserProjects(req.params.userId);
       res.json({ projects });
     } catch (error) {
-      res.status(400).json({ error: getErrorMessage(error) });
+      res.status(400).json({ error: error.message });
     }
   });
 
@@ -84,7 +84,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await projectManager.updateProjectScope(req.params.id, scope, plan);
       res.json({ success: true });
     } catch (error) {
-      res.status(400).json({ error: getErrorMessage(error) });
+      res.status(400).json({ error: error.message });
     }
   });
 
@@ -95,7 +95,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const decision = await decisionLoop.processUserInput(req.params.id, message, user_id);
       res.json({ decision });
     } catch (error) {
-      res.status(400).json({ error: getErrorMessage(error) });
+      res.status(400).json({ error: error.message });
     }
   });
 
@@ -106,7 +106,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = await toolRunner.executeTool(tool, target, req.params.id, user_plan, api_keys, headers);
       res.json({ result });
     } catch (error) {
-      res.status(400).json({ error: getErrorMessage(error) });
+      res.status(400).json({ error: error.message });
     }
   });
 
@@ -116,7 +116,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tools = toolRunner.getAvailableTools(user_plan as 'free' | 'paid', user_keys as string[]);
       res.json({ tools });
     } catch (error) {
-      res.status(400).json({ error: getErrorMessage(error) });
+      res.status(400).json({ error: error.message });
     }
   });
 
@@ -127,7 +127,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const keyRecord = await keyManager.storeApiKey(parseInt(req.params.userId), service, api_key);
       res.json({ success: true, key: { id: keyRecord.id, service: keyRecord.service, is_valid: keyRecord.is_valid } });
     } catch (error) {
-      res.status(400).json({ error: getErrorMessage(error) });
+      res.status(400).json({ error: error.message });
     }
   });
 
@@ -142,7 +142,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }));
       res.json({ keys: safeKeys });
     } catch (error) {
-      res.status(400).json({ error: getErrorMessage(error) });
+      res.status(400).json({ error: error.message });
     }
   });
 
@@ -151,7 +151,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await keyManager.deleteApiKey(parseInt(req.params.userId), req.params.service);
       res.json({ success: true });
     } catch (error) {
-      res.status(400).json({ error: getErrorMessage(error) });
+      res.status(400).json({ error: error.message });
     }
   });
 
@@ -161,7 +161,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validation = await keyManager.validateApiKey(service, api_key);
       res.json({ validation });
     } catch (error) {
-      res.status(400).json({ error: getErrorMessage(error) });
+      res.status(400).json({ error: error.message });
     }
   });
 
@@ -180,35 +180,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       ];
       
-      const threats = threatEngine.assessThreats(mockFindings);
-      res.json({ threats });
+      const predictions = await threatEngine.analyzeFindings(req.params.id, mockFindings);
+      const project = await projectManager.getProject(req.params.id);
+      
+      if (project) {
+        const assessment = await threatEngine.generateRiskAssessment(project, mockFindings, predictions);
+        res.json({ assessment });
+      } else {
+        res.status(404).json({ error: 'Project not found' });
+      }
     } catch (error) {
-      res.status(400).json({ error: getErrorMessage(error) });
+      res.status(400).json({ error: error.message });
     }
   });
 
-  // Metrics routes
+  // Feedback routes
+  app.post('/api/projects/:id/feedback', async (req, res) => {
+    try {
+      const { target_id, target_type, feedback_type, content } = req.body;
+      // TODO: Store feedback in database
+      res.json({ success: true, feedback_id: `feedback_${Date.now()}` });
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  // Override routes
+  app.post('/api/projects/:id/overrides', async (req, res) => {
+    try {
+      const { content } = req.body;
+      // TODO: Store override in database
+      res.json({ success: true, override_id: `override_${Date.now()}` });
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  app.get('/api/projects/:id/overrides', async (req, res) => {
+    try {
+      // TODO: Fetch from database
+      res.json({ overrides: [] });
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  // Metrics and usage routes
   app.get('/api/projects/:id/metrics', async (req, res) => {
     try {
-      const metrics = await projectManager.getProjectMetrics(req.params.id);
+      // TODO: Calculate actual metrics from database
+      const metrics = {
+        api_calls: 45,
+        simulated_fallbacks: 12,
+        llm_tokens_used: 2345,
+        tools_executed: 8,
+        recon_score: 72,
+        findings_count: {
+          critical: 2,
+          high: 5,
+          medium: 12,
+          low: 18
+        }
+      };
       res.json({ metrics });
     } catch (error) {
-      res.status(400).json({ error: getErrorMessage(error) });
+      res.status(400).json({ error: error.message });
     }
   });
 
-  app.get('/api/users/:userId/metrics', async (req, res) => {
+  // Demo mode route for unauthenticated users
+  app.get('/api/demo/project', async (req, res) => {
     try {
-      const metrics = await projectManager.getUserMetrics(req.params.userId);
-      res.json({ metrics });
+      const demoProject = {
+        id: 'demo_project',
+        name: 'Demo Security Assessment',
+        target: 'example.com',
+        scope: ['example.com'],
+        status: 'active',
+        plan: 'free',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      res.json({ project: demoProject });
     } catch (error) {
-      res.status(400).json({ error: getErrorMessage(error) });
+      res.status(400).json({ error: error.message });
     }
-  });
-
-  // Health check
-  app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
 
   const httpServer = createServer(app);
