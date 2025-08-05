@@ -106,38 +106,22 @@ export class LLMClient {
   }
 
   private generateMockDecision(prompt: string): LLMDecision {
-    // Generate realistic mock decisions based on prompt content
+    // Generate realistic mock decisions based on prompt content - always with reconnaissance focus
     const lowerPrompt = prompt.toLowerCase();
     const actions: ActionCard[] = [];
     
-    // Check if this is a conversational/greeting message
-    const greetings = ['hi', 'hello', 'hey', 'good morning', 'good afternoon', 'good evening', 'how are you'];
-    const isGreeting = greetings.some(greeting => lowerPrompt.includes(greeting));
-    
-    const conversationalWords = ['thanks', 'thank you', 'ok', 'okay', 'yes', 'no', 'sure', 'please'];
-    const isConversational = conversationalWords.some(word => lowerPrompt.includes(word));
-    
-    // Check if this is a help/question message
-    const questionWords = ['help', 'what', 'how', 'why', 'when', 'where', 'who', 'can you', 'do you'];
-    const isQuestion = questionWords.some(word => lowerPrompt.includes(word));
-    
-    // Only suggest reconnaissance actions if the prompt clearly indicates reconnaissance intent
+    // Extract potential targets from the conversation
     const hasTarget = this.extractTarget(prompt) !== 'example.com';
-    const reconKeywords = ['scan', 'recon', 'reconnaissance', 'enumerate', 'discover', 'find', 'search', 'probe', 'check', 'analyze', 'test', 'audit'];
+    const reconKeywords = ['scan', 'recon', 'reconnaissance', 'enumerate', 'discover', 'find', 'search', 'probe', 'check', 'analyze', 'test', 'audit', 'investigate'];
     const hasReconIntent = reconKeywords.some(keyword => lowerPrompt.includes(keyword));
-
-    // Don't suggest actions for simple greetings or conversations
-    if (isGreeting || (isConversational && !hasReconIntent) || (isQuestion && !hasReconIntent && !hasTarget)) {
-      return {
-        actions: [],
-        reasoning: this.generateConversationalResponse(prompt),
-        confidence: 0.9,
-        needs_clarification: false
-      };
-    }
-
-    // Only suggest reconnaissance actions if there's clear intent or a target
-    if (hasReconIntent || hasTarget) {
+    
+    // Check for domain/IP patterns that might indicate targets
+    const domainPattern = /(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}/g;
+    const ipPattern = /\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b/g;
+    const hasImplicitTarget = domainPattern.test(prompt) || ipPattern.test(prompt);
+    
+    // Always suggest reconnaissance actions for clear targets or recon intent
+    if (hasReconIntent || hasTarget || hasImplicitTarget) {
       if (lowerPrompt.includes('subdomain') || lowerPrompt.includes('discover') || lowerPrompt.includes('enumerate')) {
         actions.push({
           tool: 'subfinder',
@@ -178,8 +162,8 @@ export class LLMClient {
         });
       }
 
-      // If reconnaissance intent is clear but no specific actions identified, suggest basic recon
-      if (actions.length === 0 && (hasReconIntent || hasTarget)) {
+      // For clear recon intent or targets, suggest comprehensive initial recon
+      if (actions.length === 0 && (hasReconIntent || hasTarget || hasImplicitTarget)) {
         actions.push({
           tool: 'subfinder',
           target: this.extractTarget(prompt),
@@ -189,11 +173,45 @@ export class LLMClient {
         });
       }
     }
+    
+    // For pure conversational messages without clear targets, provide guided responses
+    const pureConversationalWords = ['hi', 'hello', 'hey', 'thanks', 'thank you', 'ok', 'yes', 'no'];
+    const isGreeting = ['hi', 'hello', 'hey', 'good morning', 'good afternoon', 'good evening'].some(word => lowerPrompt.includes(word));
+    const isThankYou = ['thanks', 'thank you'].some(word => lowerPrompt.includes(word));
+    const isHelpRequest = ['help', 'what can you do', 'what', 'how'].some(phrase => lowerPrompt.includes(phrase));
+    
+    const isPureConversational = pureConversationalWords.some(word => lowerPrompt.includes(word)) && 
+                                actions.length === 0 && 
+                                !hasReconIntent && 
+                                !hasTarget && 
+                                !hasImplicitTarget;
+    
+    if (isPureConversational) {
+      const reasoning = this.generateConversationalResponse(prompt);
+      
+      // Only suggest demo actions for help requests, not for thanks/greetings
+      if (isHelpRequest) {
+        actions.push({
+          tool: 'subfinder',
+          target: 'example.com',
+          reason: 'Demonstrate subdomain discovery - replace with your target domain',
+          confidence: 0.6,
+          inferred: true
+        });
+      }
+      
+      return {
+        actions: actions,
+        reasoning: reasoning,
+        confidence: 0.9,
+        needs_clarification: actions.length === 0
+      };
+    }
 
     // Generate appropriate reasoning based on whether actions were suggested
     let reasoning: string;
     if (actions.length > 0) {
-      reasoning = `Based on your request, I recommend starting with ${actions.length === 1 ? 'this action' : 'these actions'} to gather intelligence about the target.`;
+      reasoning = `I'll help you gather intelligence on your target. Based on your request, I recommend ${actions.length === 1 ? 'this reconnaissance action' : 'these reconnaissance actions'} to build a comprehensive security profile.`;
     } else {
       reasoning = this.generateConversationalResponse(prompt);
     }
@@ -202,7 +220,7 @@ export class LLMClient {
       actions: actions.slice(0, 2), // Limit to 2 actions as per spec
       reasoning: reasoning,
       confidence: actions.length > 0 ? Math.max(...actions.map(a => a.confidence)) : 0.9,
-      needs_clarification: false
+      needs_clarification: actions.length === 0
     };
   }
 
@@ -210,19 +228,27 @@ export class LLMClient {
     const lowerPrompt = prompt.toLowerCase();
     
     if (lowerPrompt.includes('hi') || lowerPrompt.includes('hello') || lowerPrompt.includes('hey')) {
-      return "Hello! I'm your reconnaissance assistant. I can help you with security testing and reconnaissance tasks. What would you like to investigate today?";
+      return "Hello! I'm your reconnaissance specialist. What target or domain would you like me to investigate today? I can discover subdomains, enumerate endpoints, scan for vulnerabilities, and gather intelligence.";
     }
     
     if (lowerPrompt.includes('help') || lowerPrompt.includes('what can you do')) {
-      return "I can help you with reconnaissance and security testing tasks including subdomain discovery, endpoint enumeration, vulnerability scanning, and more. Just describe what you'd like to investigate or specify a target domain.";
+      return "I specialize in reconnaissance and security testing. I can perform subdomain discovery, endpoint enumeration, vulnerability scanning, secret detection, and threat intelligence gathering. What's your target domain or IP range?";
     }
     
     if (lowerPrompt.includes('thanks') || lowerPrompt.includes('thank you')) {
-      return "You're welcome! Feel free to ask me about any reconnaissance tasks you'd like to perform.";
+      return "You're welcome! Ready to discover more intelligence? What other targets should we investigate, or would you like me to run additional scans on previous targets?";
     }
     
-    // Generic conversational response
-    return "I understand. Is there a specific reconnaissance task or target you'd like me to help you with?";
+    if (lowerPrompt.includes('weather') || lowerPrompt.includes('news') || lowerPrompt.includes('time')) {
+      return "I focus on cybersecurity reconnaissance rather than general information. However, I can help you investigate any domains, IP addresses, or systems for security intelligence. What would you like to scan?";
+    }
+    
+    if (lowerPrompt.includes('how are you') || lowerPrompt.includes('whats up')) {
+      return "I'm ready to conduct reconnaissance operations! My tools are loaded and waiting. What target should we investigate first - a domain, IP range, or specific system?";
+    }
+    
+    // Generic conversational response that always pivots to recon
+    return "I understand. As your reconnaissance specialist, I'm here to help gather intelligence on targets. What domain, IP address, or system would you like me to investigate?";
   }
 
   private extractTarget(prompt: string): string {

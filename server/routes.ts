@@ -119,13 +119,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Process with AI
       const decision = await decisionLoop.processUserInput(req.params.id, message, user_id);
       
-      // Generate conversational response based on the decision
-      let response = '';
-      if (decision.actions && decision.actions.length > 0) {
-        response = `I'll help you with reconnaissance on your target. Based on your request "${message}", I'm going to start by running ${decision.actions.map(a => a.tool).join(' and ')} to gather intelligence about ${decision.actions[0].target}.\n\nHere's my analysis: ${decision.reasoning}`;
-      } else {
-        // For conversational messages without actions, just use the reasoning directly
-        response = decision.reasoning;
+      // Use the LLM's intelligent reasoning for the response
+      let response = decision.reasoning;
+      
+      // Only add action context if there are specific reconnaissance actions to execute
+      if (decision.actions && decision.actions.length > 0 && decision.actions[0].target !== 'example.com') {
+        response = `I'll help you gather intelligence on ${decision.actions[0].target}. Based on your request, I recommend running ${decision.actions.map(a => a.tool).join(' and ')} to discover valuable security information.\n\n${decision.reasoning}`;
       }
 
       // Stream the response word by word

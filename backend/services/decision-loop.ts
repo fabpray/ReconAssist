@@ -25,7 +25,11 @@ export class DecisionLoop {
     userId: string
   ): Promise<DecisionResult> {
     
-    // Get LLM decision
+    // Get conversation context from history
+    const conversationHistory = this.decisionHistory.get(projectId) || [];
+    const recentMessages = conversationHistory.slice(-3).map(h => h.message_id); // Last 3 interactions for context
+    
+    // Get LLM decision (without context for now - will enhance later)
     const llmDecision = await this.llmClient.getDecision(userMessage, userId);
     
     // Create decision result
@@ -47,9 +51,9 @@ export class DecisionLoop {
     this.decisionHistory.get(projectId)!.push(decisionResult);
 
     // Keep only last 10 decisions per project
-    const history = this.decisionHistory.get(projectId)!;
-    if (history.length > 10) {
-      this.decisionHistory.set(projectId, history.slice(-10));
+    const updatedHistory = this.decisionHistory.get(projectId)!;
+    if (updatedHistory.length > 10) {
+      this.decisionHistory.set(projectId, updatedHistory.slice(-10));
     }
 
     return decisionResult;
